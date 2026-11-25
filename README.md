@@ -13,20 +13,34 @@ predispositions predict the following variables in the Generation R Study
 - diet;
 - online activity.
 
-The genetic dispositions are GenomICA components. They are extracted in a
-data-driven way, by independent component analysis (ICA), from up to 691
-genome-wide association studies (GWAS) of UK Biobank traits from the Pan-UK
+The genetic dispositions are multivariate components extracted by genomic
+independent component analysis (GenomICA)
+([Soheili-Nezhad et al., 2021](https://doi.org/10.1101/2021.01.06.425535);
+[Oblong, Soheili-Nezhad et al., 2024](https://doi.org/10.1111/gbb.12876)). They
+are extracted in a data-driven way with the noisy (probabilistic) ICA algorithm
+MELODIC ([Beckmann & Smith, 2004](https://doi.org/10.1109/TMI.2003.822821)) and
+FastICA ([Hyvärinen, 1999](https://doi.org/10.1109/72.761722)), applied to up to
+691 genome-wide association studies (GWAS) of UK Biobank traits from the Pan-UK
 Biobank project ([Karczewski et al., 2025](https://doi.org/10.1038/s41588-025-02335-7)).
 Each component is a population-wide set of genome-wide variant weights, and
 every genotyped GenR child receives one score per component.
 
-It is a restructured version of the original analysis code
-(`Code_Hailey_Components.docx`). **The statistical logic is unchanged, with one
-deliberate exception:** all mixed-model tests now use the same Satterthwaite
-F-test (see [Change from the original](#change-from-the-original)). Apart from
-that, on simulated data the new code reproduces the original code's output
-exactly (see [Verification](#verification)). Concerns about the code and the science are
-listed in [Concerns](#concerns); none of them has been acted on yet.
+### References
+
+- Soheili-Nezhad S, Beckmann CF, Sprooten E. Independent genomic sources of
+  brain structure and function. *bioRxiv* 2021. doi:[10.1101/2021.01.06.425535](https://doi.org/10.1101/2021.01.06.425535)
+- Oblong LM, Soheili-Nezhad S, *et al.* Principal and independent genomic
+  components of brain structure and function. *Genes, Brain and Behavior*
+  2024;23(1):e12876. doi:[10.1111/gbb.12876](https://doi.org/10.1111/gbb.12876)
+- Beckmann CF, Smith SM. Probabilistic independent component analysis for
+  functional magnetic resonance imaging. *IEEE Transactions on Medical Imaging*
+  2004;23(2):137–152. doi:[10.1109/TMI.2003.822821](https://doi.org/10.1109/TMI.2003.822821)
+- Hyvärinen A. Fast and robust fixed-point algorithms for independent component
+  analysis. *IEEE Transactions on Neural Networks* 1999;10(3):626–634.
+  doi:[10.1109/72.761722](https://doi.org/10.1109/72.761722)
+- Karczewski KJ, *et al.* (Pan-UK Biobank). Pan-UK Biobank genome-wide
+  association analyses enhance discovery and resolution of ancestry-enriched
+  effects. *Nature Genetics* 2025;57:2408–2417. doi:[10.1038/s41588-025-02335-7](https://doi.org/10.1038/s41588-025-02335-7)
 
 ## Pipeline
 
