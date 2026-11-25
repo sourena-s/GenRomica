@@ -35,7 +35,7 @@ dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
 
 # ---- Labels, order and colours -----------------------------------------------
 
-domain_order <- c("CBCL", "MRI", "DTI", "SES", "Diet", "Online")
+domain_order <- c("CBCL", "SES", "Diet", "Online", "MRI", "DTI")
 domain_colours <- c(CBCL = "#2a78d6", MRI = "#eb6834", DTI = "#1baf7a",    # fixed order of the
                     SES = "#eda100", Diet = "#e87ba4", Online = "#008300")  # reference palette
 outcome_labels <- c(
@@ -48,7 +48,8 @@ outcome_labels <- c(
   DietScore_8y = "Diet quality (8y)", onlineweek_child_F17 = "Online activity (17y)"
 )
 ink <- "#0b0b0b"; ink_muted <- "#52514e"; grid_col <- "#e4e3df"
-col_fdr <- "#1f5fbf"; col_nominal <- "#8c8b86"
+# threshold lines use palette slots 7-8, which no domain uses
+col_fdr <- "#6250d6"; col_nominal <- "#e34948"
 
 label_outcome <- function(x) ifelse(x %in% names(outcome_labels), outcome_labels[x], x)
 
@@ -103,6 +104,8 @@ phewas_plot <- function(d, set_name) {
   # alternating background bands mark the domains; domain names sit above them
   bands <- d[, .(xmin = min(outcome_x) - 0.5, xmax = max(outcome_x) + 0.5), by = .(panel, domain)]
   bands[, shade := seq_len(.N) %% 2 == 1, by = panel]
+  # narrow domains (one outcome) alternate in height so their names do not overlap
+  bands[, label_raise := (xmax - xmin) <= 1 & seq_len(.N) %% 2 == 0, by = panel]
   # each panel has its own y range; domain names sit just above its highest point
   bands[d[, .(y_top = max(c(minus_log10_p, -log10(0.05))) * 1.12), by = panel], on = "panel", y_top := i.y_top]
   axis_labels <- unique(d[, .(panel, outcome, outcome_x)])
@@ -112,11 +115,16 @@ phewas_plot <- function(d, set_name) {
     geom_rect(data = bands[shade == TRUE], aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf),
               inherit.aes = FALSE, fill = "#f4f3f0") +
     geom_blank(data = bands, aes(x = xmin, y = y_top * 1.12), inherit.aes = FALSE) +
-    geom_text(data = bands, aes(x = (xmin + xmax) / 2, y = y_top, label = domain),
+    geom_text(data = bands, aes(x = (xmin + xmax) / 2, y = y_top * fifelse(label_raise, 1.08, 1), label = domain),
               inherit.aes = FALSE, size = 3, fontface = "bold", colour = ink_muted, vjust = 0) +
-    geom_hline(yintercept = -log10(0.05), linetype = "22", colour = col_nominal, linewidth = 0.4) +
+    geom_hline(yintercept = -log10(0.05), linetype = "22", colour = col_nominal, linewidth = 0.5) +
     geom_hline(data = thresholds[!is.na(fdr)], aes(yintercept = -log10(fdr)),
                linetype = "22", colour = col_fdr, linewidth = 0.5) +
+    annotate("text", x = Inf, y = -log10(0.05), label = "p = 0.05 (single test)",
+             colour = col_nominal, size = 2.7, hjust = -0.05, vjust = 0.4, fontface = "bold") +
+    geom_text(data = thresholds[!is.na(fdr)], aes(x = Inf, y = -log10(fdr)),
+              label = "FDR 5% (all tests)", inherit.aes = FALSE,
+              colour = col_fdr, size = 2.7, hjust = -0.05, vjust = 0.4, fontface = "bold") +
     geom_point(aes(fill = domain, shape = direction), colour = "white", stroke = 0.3, size = 2.3) +
     geom_text_repel(data = hits, aes(label = predictor), size = 2.6, colour = ink,
                     min.segment.length = 0, segment.colour = ink_muted, segment.size = 0.25,
@@ -133,17 +141,19 @@ phewas_plot <- function(d, set_name) {
            shape = guide_legend(override.aes = list(fill = ink_muted, size = 2.6), order = 2)) +
     labs(x = NULL, y = expression(-log[10](italic(p))),
          title = sprintf("%s: GenomICA polygenic scores and outcomes in Generation R", set_name),
-         caption = paste0("Each point is one score × outcome test. Grey dashed line: p = 0.05. ",
-                          "Blue dashed line: FDR 5% threshold\n(Benjamini–Hochberg within score set and hypothesis). ",
-                          "Labelled points pass the FDR threshold.")) +
+         caption = paste0("Each point is one score × outcome test (one point per component for every outcome). ",
+                          "Red dashed line: p = 0.05 for a single test.\nPurple dashed line: FDR 5% threshold across all ",
+                          "scores and outcomes of the panel (Benjamini–Hochberg). Labelled points pass FDR.")) +
     coord_cartesian(clip = "off") +
     theme_figure() +
     theme(panel.grid.major.y = element_line(colour = grid_col, linewidth = 0.3),
           strip.text = element_text(face = "bold", size = 10, hjust = 0, margin = margin(b = 14)),
           panel.spacing = unit(5.5, "lines"),
-          plot.margin = margin(10, 10, 10, 70),
+          plot.margin = margin(10, 120, 10, 70),
+          legend.position = "bottom", legend.box = "horizontal",
+          legend.box.margin = margin(t = 85),
           axis.title.y = element_text(angle = 90, margin = margin(r = 34)),
-          plot.caption = element_text(colour = ink_muted, size = 8, hjust = 0, margin = margin(t = 60)),
+          plot.caption = element_text(colour = ink_muted, size = 8, hjust = 0, margin = margin(t = 12)),
           axis.line.x = element_blank())
 }
 
@@ -176,8 +186,8 @@ heatmap_plot <- function(d, hyp, set_name) {
   d[, mark_colour := fifelse(dark, "white", ink)]
 
   ggplot(d, aes(outcome_label, predictor, fill = value)) +
-    geom_tile(colour = "white", linewidth = 0.6) +
-    geom_text(aes(label = mark, colour = mark_colour), size = 3.4, vjust = 0.75, fontface = "bold") +
+    geom_tile(colour = "#3a3f44", linewidth = 0.25) +
+    geom_text(aes(label = mark, colour = mark_colour), size = 6.8, vjust = 0.78, fontface = "bold") +
     scale_colour_identity() +
     fill_scale +
     facet_grid(. ~ domain, scales = "free_x", space = "free_x") +
