@@ -149,7 +149,7 @@ with Generation R data management before adding a variable to
 - CBCL syndrome scales at waves f05, f09, f13 and f17: anxious/depressed, somatic complaints, withdrawn, social problems, thought problems, attention problems, rule-breaking and aggressive behaviour (`sum_<scale>_<wave>`). *Count* sum scores.
 
 **Not used yet**
-- **Autistic traits:** Social Responsiveness Scale at about 6 years, and the short form at about 13.5 years. *Continuous.* ([autistic traits and peers](https://pure.eur.nl/en/datasets/childrens-autistic-traits-and-peer-relationships-do-non-verbal-iq/), [age 13.5](https://link.springer.com/10.1186/s13229-023-00578-x))
+- **Autistic traits:** Social Responsiveness Scale (SRS), 18-item short form, at about 6 years and at about 13.5 years. The short form correlates 0.93–0.99 with the full 65-item SRS. *Continuous.* ([autistic traits and peers](https://pure.eur.nl/en/datasets/childrens-autistic-traits-and-peer-relationships-do-non-verbal-iq/), [short form at about 6](https://link.springer.com/10.1186/s13229-022-00507-4), [age 13.5](https://link.springer.com/10.1186/s13229-023-00578-x))
 - **Executive function:** BRIEF-P (parent report) at age 4, plus ADHD diagnoses from the DISC-YC interview in individuals who screened positive. *Continuous* and *binary.* ([executive function and ADHD, 2019](https://link.springer.com/10.1186/s13034-019-0299-7))
 - **Bullying and peer victimisation:** teacher report at about 6.6 years, and peer nomination or self-report at about 7.5 years. *Count* and *binary.* ([Verlinden et al.](https://repub.eur.nl/pub/77215/141202_Verlinden-Bondaruk-Maryna.pdf))
 - **Hallucinatory (psychotic-like) experiences:** self-report at about 10 years. *Ordinal.* ([Steenkamp et al., 2021](https://repub.eur.nl/pub/134983))
@@ -709,8 +709,9 @@ online activity at 17, income, and parental education.
 
 #### Candidates not used yet
 
-- **Autistic traits (SRS):** the full scale (65 items) at about 6, the short
-  form (about 18 items) at about 13.5. Not comparable.
+- **Autistic traits (SRS):** the same 18-item short form was used at about 6
+  years and at about 13.5 years, so scores are comparable in items. The informant
+  should still be checked per wave.
 - **Cognition:** SON-R nonverbal IQ at about 6 vs different subtests at about
   13. Different tests.
 - **Executive function:** BRIEF-P (preschool version) at 4; any later BRIEF is
