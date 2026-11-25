@@ -150,7 +150,7 @@ $`i`$ carries. The GPS of child $`i`$ is
 It is computed in step 4. Score sets `C` and `UK_PCS` are GPS; set `PGS` holds
 conventional polygenic scores. All are analysed in the same way.
 
-### 1. Repeated measures, one score at a time
+### 1. Repeated measures, one score at a time — equation [1]
 
 Linear mixed model, fitted by maximum likelihood. For measurement $`j`$
 (wave f05, f09, f13 or f17) of child $`i`$:
@@ -172,6 +172,7 @@ Full model, with every term labelled:
  + {\color{red}\underbrace{u_i}_{\text{child random intercept}}}
  + \underbrace{\varepsilon_{ij}}_{\text{residual}}
 \end{aligned}
+\tag{1}
 ```
 
 The three nested models differ only in which GPS terms are included:
@@ -229,7 +230,7 @@ Fitted in R (`R/05_run_regressions.R`; the formula is built with `reformulate()`
 - **H2** is a 2-df *F*-test of whether the association changes with age. In $`\mathcal{M}_2`$, $`\beta_3`$ is the association at age 17.
 - **Effect size:** the incremental Nakagawa marginal $`R^2`$ (variance explained by fixed effects): $`R^2_{\mathcal{M}_1} - R^2_{\mathcal{M}_0}`$ for H1 and $`R^2_{\mathcal{M}_2} - R^2_{\mathcal{M}_1}`$ for H2.
 
-### 2. Repeated measures, a whole score set jointly
+### 2. Repeated measures, a whole score set jointly — equation [2]
 
 All $`K`$ scores of a set (e.g. the 20 component GPS) enter one model, each
 z-transformed across children:
@@ -247,6 +248,7 @@ z-transformed across children:
  + {\color{red}\underbrace{u_i}_{\text{child random intercept}}}
  + \underbrace{\varepsilon_{ij}}_{\text{residual}}
 \end{aligned}
+\tag{2}
 ```
 
 Fitted in R (`R/05_run_regressions.R`; the formula is built with `reformulate()`, and covariates that are constant in the sample are left out):
@@ -262,7 +264,7 @@ Fitted in R (`R/05_run_regressions.R`; the formula is built with `reformulate()`
 \textbf{H1:}\;\; \theta_1 = \theta_2 = \dots = \theta_K = 0 \qquad (K\text{-df } F\text{-test, Satterthwaite})
 ```
 
-### 3. Outcomes measured once (ordinary least squares)
+### 3. Outcomes measured once (ordinary least squares) — equation [3]
 
 For SES, diet and online use (one row per child):
 
@@ -278,6 +280,7 @@ For SES, diet and online use (one row per child):
  + \underbrace{\varepsilon_{i}}_{\text{residual}},
 \qquad \varepsilon_i \sim \mathcal{N}(0, \sigma^2)
 \end{aligned}
+\tag{3}
 ```
 
 Fitted in R with ordinary least squares (`R/05_run_regressions.R`; the formula is built with `reformulate()`, and covariates that are constant in the sample are left out):
@@ -292,9 +295,26 @@ Fitted in R with ordinary least squares (`R/05_run_regressions.R`; the formula i
 - $`\mathrm{age}_i`$ (age at measurement) is included only for outcomes that have one, e.g. `AgeChild_GR1203` for online use.
 - H1 ($`\boldsymbol{\theta} = \mathbf{0}`$) is the exact nested-model *F*-test. For a single score, the reported estimate is $`\theta_1`$.
 
-### Multiple testing
+### Hypotheses and multiple testing
 
-Benjamini–Hochberg FDR, applied separately within each score set × hypothesis.
+Every hypothesis tested, with the equation used to test it:
+
+- **H1, one GPS, repeated measures** (CBCL, MRI, DTI). Equation [1], model $`\mathcal{M}_1`$: $`\beta_3 = 0`$. Satterthwaite *F*-test with 1 df.
+- **H2, one GPS, repeated measures** (CBCL, MRI, DTI): the GPS association changes with age. Equation [1], model $`\mathcal{M}_2`$: $`\beta_4 = \beta_5 = 0`$. Satterthwaite *F*-test with 2 df.
+- **H1, one GPS, single-time outcomes** (SES, diet, online). Equation [3] with one score: $`\theta_1 = 0`$. Nested-model *F*-test.
+- **H1, a GPS set jointly, repeated measures** (CBCL, MRI, DTI). Equation [2]: $`\theta_1 = \dots = \theta_K = 0`$. Satterthwaite *F*-test with $`K`$ df.
+- **H1, a GPS set jointly, single-time outcomes** (SES, diet, online). Equation [3] with all $`K`$ scores of the set: $`\theta_1 = \dots = \theta_K = 0`$. Nested-model *F*-test.
+
+**Multiple testing.** p-values are corrected with the Benjamini–Hochberg false
+discovery rate (FDR), separately within each score set × hypothesis:
+
+- For each single-score set (`PCS`, `UK_PCS`, `PGS`), H1 is one family. It
+  covers every score in the set and every outcome, both repeated measures [1]
+  and single-time outcomes [3].
+- For each single-score set, H2 is another family. It covers every score in
+  the set and every repeated measure [1].
+- Each jointly tested set (`PCS_combined`, `UK_PCS_combined`) is its own H1
+  family, covering every outcome, from [2] and [3].
 
 ### Change from the original
 
