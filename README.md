@@ -133,114 +133,35 @@ strand-ambiguous SNPs. Because step 3 already removes palindromic SNPs, the
 rerun can currently only drop those few flipped SNPs; see concern B2. The
 choice for each score is logged in `*_snp_matching.csv`.
 
-## GenR variables: used and candidates
+## GenR variables used
 
 Each variable is tagged with its data type: *continuous*, *count*, *ordinal*,
-*binary* or *categorical*. "Not used yet" variables were checked against
-published Generation R papers, which are linked. The Generation R data
-dictionary is not public, so check exact variable names, waves and sample sizes
-with Generation R data management before adding a variable to
-`config/project.R`. A new variable is added as a row in `cfg$longitudinal`
-(repeated measures) or `cfg$single_outcomes` (measured once).
+*binary* or *categorical*. Candidate variables not used yet are listed at the
+end, in [Candidate GenR variables not used yet](#candidate-genr-variables-not-used-yet).
 
-### Behaviour and psychiatric traits
-
-**Used**
-- CBCL syndrome scales at waves f05, f09, f13 and f17: anxious/depressed, somatic complaints, withdrawn, social problems, thought problems, attention problems, rule-breaking and aggressive behaviour (`sum_<scale>_<wave>`). *Count* sum scores.
-
-**Not used yet**
-- **Autistic traits:** Social Responsiveness Scale (SRS), 18-item short form, at about 6 years and at about 13.5 years. The short form correlates 0.93–0.99 with the full 65-item SRS. *Continuous.* ([autistic traits and peers](https://pure.eur.nl/en/datasets/childrens-autistic-traits-and-peer-relationships-do-non-verbal-iq/), [short form at about 6](https://link.springer.com/10.1186/s13229-022-00507-4), [age 13.5](https://link.springer.com/10.1186/s13229-023-00578-x))
-- **Executive function:** BRIEF-P (parent report) at age 4, plus ADHD diagnoses from the DISC-YC interview in individuals who screened positive. *Continuous* and *binary.* ([executive function and ADHD, 2019](https://link.springer.com/10.1186/s13034-019-0299-7))
-- **Bullying and peer victimisation:** teacher report at about 6.6 years; peer nomination and self-report at about 7.5 years; parent and teacher report at about 8 years. *Count* and *binary.* ([Verlinden et al.](https://repub.eur.nl/pub/77215/141202_Verlinden-Bondaruk-Maryna.pdf), [bullying and brain](https://www.frontiersin.org/journals/psychiatry/articles/10.3389/fpsyt.2019.00696/pdf))
-- **Hallucinatory (psychotic-like) experiences:** self-report at about 10 years. *Ordinal.* ([Steenkamp et al., 2021](https://repub.eur.nl/pub/134983))
-
-### Cognition and education
-
-**Used:** none.
-
-**Not used yet**
-- **Nonverbal IQ:** Snijders-Oomen nonverbal intelligence test (SON-R) at about 6 years. *Continuous.* ([PMC9527951](https://pmc.ncbi.nlm.nih.gov/articles/PMC9527951/))
-- **Cognition at about 13 years:** four WISC-V subtests (vocabulary, matrix reasoning, digit span, coding) and an estimated full-scale IQ. *Continuous.* ([PMC11391039](https://pmc.ncbi.nlm.nih.gov/articles/PMC11391039))
-- **Cito end-of-primary-school test** (language and mathematics) at about 12 years. *Continuous;* left-skewed with a ceiling effect, so a transform may be needed. ([PMC11391039](https://pmc.ncbi.nlm.nih.gov/articles/PMC11391039))
-
-### Brain imaging
-
-**Used**
-- Total grey-matter volume and mean cortical thickness, by wave. *Continuous.*
-- Mean fractional anisotropy (FA) and mean diffusivity (MD) from DTI, by wave. *Continuous.*
-
-**Not used yet**
-- **Subcortical and regional volumes:** e.g. hippocampus, already analysed in Generation R. *Continuous.* ([urban environment and brain](https://pure.eur.nl/en/publications/urban-environment-in-early-life-and-brain-morphology-in-preadoles/))
-- **Total brain volume and other global measures** from the same scans. *Continuous.* ([White et al., 2018](https://pmc.ncbi.nlm.nih.gov/articles/PMC5803295))
-- **Resting-state functional connectivity (fMRI):** at ages 6–10 (n ≈ 774 in one analysis), and longitudinally at ages 10 and 14. *Continuous.* ([dynamic connectivity, ages 10 and 14](https://www.doi.org/10.3389/FNSYS.2021.724805), [subcortical connectivity, ages 6–10](https://core.ac.uk/download/160828747.pdf), [Generation R and ABCD connectivity](https://pmc.ncbi.nlm.nih.gov/articles/PMC11332032))
-
-### Body composition and physical health
-
-**Used:** none.
-
-**Not used yet**
-- **Body composition:** total and visceral fat at about 13 years, and body-fat indicators at about 6 years. *Continuous.* ([body composition at 13](https://pure.eur.nl/en/publications/physical-activity-screen-time-and-body-composition-in-13-year-old/), [Wijtzes thesis](https://repub.eur.nl/pub/78112/150513_Wijtzes-Anne-Irene.pdf))
-- **Lung function:** spirometry at about 10 years. *Continuous.* ([Abellan et al., 2024](https://repositori.upf.edu/items/75d98624-ed04-4297-a6ca-e67dbb27bad5/full))
-- **Blood pressure and cardiometabolic markers:** blood pressure at ages 6 and 9–10, a cardiometabolic risk score at age 8, and lipids and insulin at age 6. *Continuous.* ([blood-pressure prediction](https://repub.eur.nl/pub/112552/Repub_112552_O-A.pdf), [diet quality and cardiometabolic health](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8854322/), [infant fat mass and risk factors](https://pmc.ncbi.nlm.nih.gov/articles/PMC5426532))
-- **Oral and dental health:** collected at ages 3, 6, 9, 13 and 17. *Count* and *binary.* ([oral health overview](https://link.springer.com/article/10.1007/s00784-023-05076-1))
-
-### Lifestyle
-
-**Used**
-- Diet quality score at 8 years (`DietScore_8y`). *Continuous.*
-- Weekly online activity at about 17 years (`onlineweek_child_F17`). *Continuous.*
-
-**Not used yet**
-- **Screen time at about 6 years:** TV and computer-game use (parent report). *Continuous* (hours/day). ([lifestyle clustering](https://pmc.ncbi.nlm.nih.gov/articles/PMC7352876))
-- **Screen time at about 13 years:** self-report. *Continuous* (hours/day). ([body composition at 13](https://pure.eur.nl/en/publications/physical-activity-screen-time-and-body-composition-in-13-year-old/))
-- **Physical activity:** sports participation, outdoor play and active travel to school at about 6 years (parent report); self-report at about 13 years. *Continuous* and *binary.* ([Wijtzes thesis](https://repub.eur.nl/pub/78112/150513_Wijtzes-Anne-Irene.pdf))
-- **Accelerometer-measured physical activity:** only found at age 2 (uniaxial ActiGraph, n = 347). *Continuous* (time in sedentary and active behaviour). No accelerometer data were found for later ages. ([correlates of physical activity in 2-year-olds](https://research.tilburguniversity.edu/en/publications/correlates-of-physical-activity-in-2-year-old-toddlers-the-genera/))
-- **Diet components:** snacks and sugar-sweetened drinks at about 6 years, and the individual food groups of the age-8 food-frequency questionnaire. *Continuous* (portions/day). ([diet quality at 8](https://repub.eur.nl/pub/121454/121454_Chapter_2_4-Diet_quality_in_childhood.pdf))
-- **Substance use:** alcohol use (self-report, adolescence) and age at first alcohol or tobacco use (at about 14 years). *Binary* and *continuous.* ([alcohol and brain](https://dspace.library.uu.nl/handle/1874/443370), [brain and initiation](https://pure.eur.nl/en/publications/examining-associations-between-brain-morphology-in-late-childhood/))
-- **Sleep:** sleep problems in early childhood; sleep and circadian rhythm in the age-9 protocol. *Continuous* and *ordinal.* ([sleep and autistic traits](https://capmh.biomedcentral.com/track/pdf/10.1186/s13034-021-00421-2), [age-9 protocol](https://onderzoekmetmensen.nl/en/node/41521/pdf))
-
-### Socioeconomic status and family
-
-**Used**
-- Household income (`INCOME5`). *Ordinal* (5 categories), modelled as continuous.
-- Maternal and paternal education (`EDUCM`, `EDUCP`). *Ordinal*, modelled as continuous.
-
-**Not used yet**
-- **Parental psychopathology:** Brief Symptom Inventory (BSI) for mothers and fathers, in pregnancy and in childhood, including the hostility subscale. *Continuous.* ([Lambregtse-van den Berg et al.](https://pmc.ncbi.nlm.nih.gov/articles/PMC3135831))
-- **Harsh parental discipline:** maternal and paternal report. *Continuous.* ([Mackenbach et al., 2014](https://doi.org/10.1371/JOURNAL.PONE.0104793))
-- **Family functioning** (parent report). *Continuous.* ([PMC3135831](https://pmc.ncbi.nlm.nih.gov/articles/PMC3135831))
-- **Neighbourhood socioeconomic status**, used in the bullying analyses. *Continuous.* ([Verlinden et al.](https://repub.eur.nl/pub/77215/141202_Verlinden-Bondaruk-Maryna.pdf))
-
-### Prenatal exposures
-
-**Used:** none.
-
-**Not used yet**
-- **Maternal smoking in pregnancy:** never, first trimester only, or continued. *Categorical.* ([Zou et al.](https://dspace.library.uu.nl/handle/1874/421990), [Roza et al., 2009](https://pure.eur.nl/en/publications/maternal-smoking-during-pregnancy-and-child-behaviour-problems-th/))
-- **Maternal alcohol use in pregnancy**, coded in the same way. *Categorical.* ([PMC5233749](https://pmc.ncbi.nlm.nih.gov/articles/PMC5233749))
-- **Paternal smoking.** *Binary.* ([Roza et al., 2009](https://pure.eur.nl/en/publications/maternal-smoking-during-pregnancy-and-child-behaviour-problems-th/))
-
-### Environmental exposures (urban exposome)
-
-**Used:** none.
-
-**Not used yet**
-
-About 30 exposures, from pregnancy and childhood, at the home address. *Continuous* unless noted. ([Abellan et al., 2024](https://repositori.upf.edu/items/75d98624-ed04-4297-a6ca-e67dbb27bad5/full), [urban environment and brain](https://pure.eur.nl/en/publications/urban-environment-in-early-life-and-brain-morphology-in-preadoles/))
-
-- air pollution;
-- road-traffic noise over 24 hours, and night-time noise at home;
-- green space: NDVI within 100 m, and major green space within 300 m (*binary*);
-- blue space;
-- walkability;
-- land use.
-
-### Covariates (used)
-
-- **Sex:** *binary.*
-- **Genotyping cohort:** *categorical.*
-- **gPC1–4:** *continuous.*
-- **Age at each measurement:** *continuous.*
+- **Behaviour:** CBCL syndrome scales at waves f05, f09, f13 and f17 (`sum_<scale>_<wave>`): *count* sum scores.
+  - anxious/depressed;
+  - somatic complaints;
+  - withdrawn;
+  - social problems;
+  - thought problems;
+  - attention problems;
+  - rule-breaking behaviour;
+  - aggressive behaviour.
+- **Brain imaging:**
+  - total grey-matter volume and mean cortical thickness, by wave: *continuous*;
+  - mean fractional anisotropy (FA) and mean diffusivity (MD) from DTI, by wave: *continuous*.
+- **Lifestyle:**
+  - diet quality score at 8 years (`DietScore_8y`): *continuous*;
+  - weekly online activity at about 17 years (`onlineweek_child_F17`): *continuous*.
+- **Socioeconomic status:**
+  - household income (`INCOME5`): *ordinal* (5 categories), modelled as continuous;
+  - maternal and paternal education (`EDUCM`, `EDUCP`): *ordinal*, modelled as continuous.
+- **Covariates:**
+  - sex: *binary*;
+  - genotyping cohort: *categorical*;
+  - gPC1–4: *continuous*;
+  - age at each measurement: *continuous*.
 
 ## Quality control and filtering
 
@@ -711,35 +632,8 @@ Points not yet confirmed are marked **(check)**.
 **Single-time variables: no cross-wave issue.** These are the diet score at 8,
 online activity at 17, income, and parental education.
 
-#### Candidates not used yet
-
-- **Autistic traits (SRS):** the same 18-item short form was used at about 6
-  years and at about 13.5 years, so scores are comparable in items. The informant
-  should still be checked per wave.
-- **Cognition:** not comparable (different tests).
-  - At about 6y: Snijders-Oomen nonverbal intelligence test (SON-R).
-  - At about 13y: four WISC-V subtests (vocabulary, matrix reasoning, digit
-    span, coding), combined into an estimated full-scale IQ
-    ([PMC11391039](https://pmc.ncbi.nlm.nih.gov/articles/PMC11391039)).
-- **Executive function:** BRIEF-P (preschool version, parent report) at 4y only
-  ([executive function and ADHD](https://link.springer.com/10.1186/s13034-019-0299-7)).
-  No later BRIEF wave was found in published Generation R papers, so there is
-  nothing to compare it with.
-- **Screen time and physical activity:** different informants.
-  - At about 6y: parent questionnaire on TV viewing, computer-game use, sports
-    participation, outdoor play and active travel to school
-    ([Wijtzes thesis](https://repub.eur.nl/pub/78112/150513_Wijtzes-Anne-Irene.pdf)).
-  - At about 13y: self-report questionnaires, n = 3,258
-    ([body composition at 13](https://pure.eur.nl/en/publications/physical-activity-screen-time-and-body-composition-in-13-year-old/)).
-  - Whether the items match could not be checked from the published papers;
-    check the questionnaires.
-- **Bullying:** different informants at different ages; no adolescent wave was
-  found.
-  - About 6.6y: teacher report, n = 3,192.
-  - About 7.5y: peer nomination and self-report, n ≈ 1,100–1,300
-    ([Verlinden thesis](https://repub.eur.nl/pub/77215/141202_Verlinden-Bondaruk-Maryna.pdf)).
-  - About 8y: parent and teacher report, n = 2,602
-    ([bullying and brain](https://www.frontiersin.org/journals/psychiatry/articles/10.3389/fpsyt.2019.00696/pdf)).
+Cross-wave comparability of candidate variables not used yet is covered in
+[Candidate GenR variables not used yet](#comparability-of-candidate-variables-across-waves).
 
 #### Options for the CBCL (none applied yet, to keep replicating the original)
 
@@ -752,3 +646,128 @@ online activity at 17, income, and parental education.
 3. **Common items only:** use only the items shared by both versions,
    re-scored at every wave.
 4. **Age-normed T-scores:** comparable in meaning, but not on the raw scale.
+
+## Candidate GenR variables not used yet
+
+Each variable has been reported in at least one published Generation R paper,
+cited in square brackets (see [References for candidate variables](#references-for-candidate-variables)).
+Each is tagged with its data type: *continuous*, *count*, *ordinal*, *binary*
+or *categorical*. The Generation R data dictionary is not public, so check exact
+variable names, waves and sample sizes with Generation R data management before
+adding a variable. A new variable is added as a row in `cfg$longitudinal`
+(repeated measures) or `cfg$single_outcomes` (measured once) in
+`config/project.R`.
+
+### Behaviour and psychiatric traits
+
+- **Autistic traits:** Social Responsiveness Scale (SRS), 18-item short form, at about 6 years and at about 13.5 years. The short form correlates 0.93–0.99 with the full 65-item SRS. *Continuous.* [1, 2, 3]
+- **Executive function:** BRIEF-P (parent report) at age 4, plus ADHD diagnoses from the DISC-YC interview in individuals who screened positive. *Continuous* and *binary.* [4]
+- **Bullying and peer victimisation:** teacher report at about 6.6 years; peer nomination and self-report at about 7.5 years; parent and teacher report at about 8 years. *Count* and *binary.* [5, 6]
+- **Hallucinatory (psychotic-like) experiences:** self-report at about 10 years. *Ordinal.* [7]
+
+### Cognition and education
+
+- **Nonverbal IQ:** Snijders-Oomen nonverbal intelligence test (SON-R) at about 6 years. *Continuous.* [8]
+- **Cognition at about 13 years:** four WISC-V subtests (vocabulary, matrix reasoning, digit span, coding) and an estimated full-scale IQ. *Continuous.* [9]
+- **Cito end-of-primary-school test** (language and mathematics) at about 12 years. *Continuous;* left-skewed with a ceiling effect, so a transform may be needed. [9]
+
+### Brain imaging
+
+- **Subcortical and regional volumes:** e.g. hippocampus. *Continuous.* [10]
+- **Total brain volume and other global measures** from the same scans. *Continuous.* [11]
+- **Resting-state functional connectivity (fMRI):** at ages 6–10, and longitudinally at ages 10 and 14. *Continuous.* [12, 13, 14]
+
+### Body composition and physical health
+
+- **Body composition:** total and visceral fat at about 13 years, and body-fat indicators at about 6 years. *Continuous.* [15, 16]
+- **Lung function:** spirometry at about 10 years. *Continuous.* [17]
+- **Blood pressure and cardiometabolic markers:** blood pressure at ages 6 and 9–10, a cardiometabolic risk score at age 8, and lipids and insulin at age 6. *Continuous.* [18, 19, 20]
+- **Oral and dental health:** collected at ages 3, 6, 9, 13 and 17. *Count* and *binary.* [21]
+
+### Lifestyle
+
+- **Screen time at about 6 years:** TV and computer-game use (parent report). *Continuous* (hours/day). [22, 16]
+- **Screen time at about 13 years:** self-report. *Continuous* (hours/day). [15]
+- **Physical activity:** sports participation, outdoor play and active travel to school at about 6 years (parent report); self-report at about 13 years. *Continuous* and *binary.* [16, 15]
+- **Accelerometer-measured physical activity:** only found at age 2 (uniaxial ActiGraph, n = 347). *Continuous.* No accelerometer data were found for later ages. [23]
+- **Diet components:** snacks and sugar-sweetened drinks at about 6 years, and the individual food groups of the age-8 food-frequency questionnaire. *Continuous* (portions/day). [22, 24]
+- **Substance use:** alcohol use (self-report, adolescence) and age at first alcohol or tobacco use (at about 14 years). *Binary* and *continuous.* [25, 26]
+- **Sleep:** sleep problems in early childhood; sleep and circadian rhythm in the age-9 protocol. *Continuous* and *ordinal.* [27, 28]
+
+### Socioeconomic status and family
+
+- **Parental psychopathology:** Brief Symptom Inventory (BSI) for mothers and fathers, in pregnancy and in childhood, including the hostility subscale. *Continuous.* [29]
+- **Harsh parental discipline:** maternal and paternal report. *Continuous.* [30]
+- **Family functioning** (parent report). *Continuous.* [29]
+- **Neighbourhood socioeconomic status**, used in the bullying analyses. *Continuous.* [5]
+
+### Prenatal exposures
+
+- **Maternal smoking in pregnancy:** never, first trimester only, or continued. *Categorical.* [31, 32]
+- **Maternal alcohol use in pregnancy**, coded in the same way. *Categorical.* [33]
+- **Paternal smoking.** *Binary.* [32]
+
+### Environmental exposures (urban exposome)
+
+About 30 exposures, from pregnancy and childhood, at the home address. *Continuous* unless noted. [17, 10]
+
+- air pollution;
+- road-traffic noise over 24 hours, and night-time noise at home;
+- green space: NDVI within 100 m, and major green space within 300 m (*binary*);
+- blue space;
+- walkability;
+- land use.
+
+### Comparability of candidate variables across waves
+
+See also concern D for the variables already used.
+
+- **Autistic traits (SRS):** the same 18-item short form was used at about 6 and at about 13.5 years, so scores are comparable in items. Check the informant at each wave. [2, 3]
+- **Cognition:** not comparable (different tests).
+  - At about 6y: SON-R nonverbal IQ. [8]
+  - At about 13y: four WISC-V subtests (vocabulary, matrix reasoning, digit span, coding), combined into an estimated full-scale IQ. [9]
+- **Executive function:** BRIEF-P (preschool version, parent report) at 4y only. No later BRIEF wave was found in published Generation R papers, so there is nothing to compare it with. [4]
+- **Screen time and physical activity:** different informants.
+  - At about 6y: parent questionnaire on TV viewing, computer-game use, sports participation, outdoor play and active travel to school. [16]
+  - At about 13y: self-report questionnaires, n = 3,258. [15]
+  - Whether the items match could not be checked from the published papers; check the questionnaires.
+- **Bullying:** different informants at different ages; no adolescent wave was found.
+  - About 6.6y: teacher report, n = 3,192.
+  - About 7.5y: peer nomination and self-report, n ≈ 1,100–1,300. [5]
+  - About 8y: parent and teacher report, n = 2,602. [6]
+
+### References for candidate variables
+
+1. Autistic traits and peer relationships in Generation R (dataset record). [https://pure.eur.nl/en/datasets/childrens-autistic-traits-and-peer-relationships-do-non-verbal-iq/](https://pure.eur.nl/en/datasets/childrens-autistic-traits-and-peer-relationships-do-non-verbal-iq/)
+2. SRS short form at about 6 years in Generation R. *Molecular Autism*, 2022. [https://link.springer.com/10.1186/s13229-022-00507-4](https://link.springer.com/10.1186/s13229-022-00507-4)
+3. SRS short form at about 13.5 years in Generation R. *Molecular Autism*, 2023. [https://link.springer.com/10.1186/s13229-023-00578-x](https://link.springer.com/10.1186/s13229-023-00578-x)
+4. Preschool executive functioning (BRIEF-P) and ASD/ADHD traits. *Child and Adolescent Psychiatry and Mental Health*, 2019. [https://link.springer.com/10.1186/s13034-019-0299-7](https://link.springer.com/10.1186/s13034-019-0299-7)
+5. Verlinden-Bondaruk M. Bullying in early elementary school (PhD thesis, Erasmus University Rotterdam), 2014. [https://repub.eur.nl/pub/77215/141202_Verlinden-Bondaruk-Maryna.pdf](https://repub.eur.nl/pub/77215/141202_Verlinden-Bondaruk-Maryna.pdf)
+6. Bullying involvement and brain structure in Generation R. *Frontiers in Psychiatry*, 2019. [https://www.frontiersin.org/journals/psychiatry/articles/10.3389/fpsyt.2019.00696/pdf](https://www.frontiersin.org/journals/psychiatry/articles/10.3389/fpsyt.2019.00696/pdf)
+7. Steenkamp LR, *et al.* Bullying, peer rejection and hallucinatory experiences, 2021. [https://repub.eur.nl/pub/134983](https://repub.eur.nl/pub/134983)
+8. Mental health at 6 and IQ–achievement discrepancy (SON-R nonverbal IQ). [https://pmc.ncbi.nlm.nih.gov/articles/PMC9527951/](https://pmc.ncbi.nlm.nih.gov/articles/PMC9527951/)
+9. Neurocognition (WISC-V at 13) and Cito achievement among bereaved individuals in Generation R, 2024. [https://pmc.ncbi.nlm.nih.gov/articles/PMC11391039](https://pmc.ncbi.nlm.nih.gov/articles/PMC11391039)
+10. Urban environment in early life and brain morphology in preadolescents (Generation R). [https://pure.eur.nl/en/publications/urban-environment-in-early-life-and-brain-morphology-in-preadoles/](https://pure.eur.nl/en/publications/urban-environment-in-early-life-and-brain-morphology-in-preadoles/)
+11. White T, *et al.* Paediatric population neuroimaging and the Generation R Study: the second wave. *Eur J Epidemiol*, 2018. [https://pmc.ncbi.nlm.nih.gov/articles/PMC5803295](https://pmc.ncbi.nlm.nih.gov/articles/PMC5803295)
+12. Developmental changes in dynamic functional connectivity from childhood into adolescence. *Frontiers in Systems Neuroscience*, 2021. [https://www.doi.org/10.3389/FNSYS.2021.724805](https://www.doi.org/10.3389/FNSYS.2021.724805)
+13. Subcortical functional connectivity at ages 6–10 in Generation R. [https://core.ac.uk/download/160828747.pdf](https://core.ac.uk/download/160828747.pdf)
+14. Functional connectivity and psychiatric symptoms in ABCD and Generation R. [https://pmc.ncbi.nlm.nih.gov/articles/PMC11332032](https://pmc.ncbi.nlm.nih.gov/articles/PMC11332032)
+15. Physical activity, screen time and body composition in 13-year-old adolescents: the Generation R Study. *Pediatric Obesity*, 2023. [https://pure.eur.nl/en/publications/physical-activity-screen-time-and-body-composition-in-13-year-old/](https://pure.eur.nl/en/publications/physical-activity-screen-time-and-body-composition-in-13-year-old/)
+16. Wijtzes AI. Lifestyle behaviours and body fat in childhood (PhD thesis, Erasmus University Rotterdam), 2015. [https://repub.eur.nl/pub/78112/150513_Wijtzes-Anne-Irene.pdf](https://repub.eur.nl/pub/78112/150513_Wijtzes-Anne-Irene.pdf)
+17. Abellan A, *et al.* Urban environment during pregnancy and lung function, wheezing and asthma in school-age children. *Environmental Pollution*, 2024. [https://repositori.upf.edu/items/75d98624-ed04-4297-a6ca-e67dbb27bad5/full](https://repositori.upf.edu/items/75d98624-ed04-4297-a6ca-e67dbb27bad5/full)
+18. Prediction of high blood pressure at 9–10 years from birth to 6 years (Generation R). [https://repub.eur.nl/pub/112552/Repub_112552_O-A.pdf](https://repub.eur.nl/pub/112552/Repub_112552_O-A.pdf)
+19. Diet quality and cardiometabolic health in childhood: the Generation R Study. [https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8854322/](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8854322/)
+20. Infant fat mass and cardiometabolic risk factors at 6 years (Generation R). [https://pmc.ncbi.nlm.nih.gov/articles/PMC5426532](https://pmc.ncbi.nlm.nih.gov/articles/PMC5426532)
+21. Oral and craniofacial research in the Generation R Study. *Clinical Oral Investigations*, 2023. [https://link.springer.com/article/10.1007/s00784-023-05076-1](https://link.springer.com/article/10.1007/s00784-023-05076-1)
+22. Lifestyle behaviour clusters at age 6 (screen time, activity, snacks, sugary drinks). [https://pmc.ncbi.nlm.nih.gov/articles/PMC7352876](https://pmc.ncbi.nlm.nih.gov/articles/PMC7352876)
+23. Correlates of physical activity in 2-year-old toddlers: the Generation R Study. *J Pediatr*, 2013. [https://research.tilburguniversity.edu/en/publications/correlates-of-physical-activity-in-2-year-old-toddlers-the-genera/](https://research.tilburguniversity.edu/en/publications/correlates-of-physical-activity-in-2-year-old-toddlers-the-genera/)
+24. Diet quality in childhood (age-8 food-frequency questionnaire), Generation R. [https://repub.eur.nl/pub/121454/121454_Chapter_2_4-Diet_quality_in_childhood.pdf](https://repub.eur.nl/pub/121454/121454_Chapter_2_4-Diet_quality_in_childhood.pdf)
+25. Alcohol use and brain morphology in adolescence: a longitudinal study in three cohorts. [https://dspace.library.uu.nl/handle/1874/443370](https://dspace.library.uu.nl/handle/1874/443370)
+26. Brain morphology in late childhood and initiation of alcohol and tobacco use (Generation R). [https://pure.eur.nl/en/publications/examining-associations-between-brain-morphology-in-late-childhood/](https://pure.eur.nl/en/publications/examining-associations-between-brain-morphology-in-late-childhood/)
+27. Early sleep problems and autistic traits in Generation R. *Child and Adolescent Psychiatry and Mental Health*, 2021. [https://capmh.biomedcentral.com/track/pdf/10.1186/s13034-021-00421-2](https://capmh.biomedcentral.com/track/pdf/10.1186/s13034-021-00421-2)
+28. Generation R Focus at 9 study protocol (onderzoekmetmensen.nl). [https://onderzoekmetmensen.nl/en/node/41521/pdf](https://onderzoekmetmensen.nl/en/node/41521/pdf)
+29. Parental psychopathology, family functioning and child problems in Generation R. [https://pmc.ncbi.nlm.nih.gov/articles/PMC3135831](https://pmc.ncbi.nlm.nih.gov/articles/PMC3135831)
+30. Mackenbach MD, *et al.* Harsh parental discipline and child problem behaviour. *PLoS ONE*, 2014. [https://doi.org/10.1371/JOURNAL.PONE.0104793](https://doi.org/10.1371/JOURNAL.PONE.0104793)
+31. Zou R, *et al.* Maternal tobacco use during pregnancy and preadolescent brain morphology. [https://dspace.library.uu.nl/handle/1874/421990](https://dspace.library.uu.nl/handle/1874/421990)
+32. Roza SJ, *et al.* Maternal smoking during pregnancy and child behaviour problems: the Generation R Study. *Int J Epidemiol*, 2009. [https://pure.eur.nl/en/publications/maternal-smoking-during-pregnancy-and-child-behaviour-problems-th/](https://pure.eur.nl/en/publications/maternal-smoking-during-pregnancy-and-child-behaviour-problems-th/)
+33. Kooijman MN, *et al.* The Generation R Study: design and cohort update 2017. *Eur J Epidemiol*, 2016. [https://pmc.ncbi.nlm.nih.gov/articles/PMC5233749](https://pmc.ncbi.nlm.nih.gov/articles/PMC5233749)
