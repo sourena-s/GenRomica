@@ -73,8 +73,9 @@ Required R packages: `data.table`, `R.utils` (reads `.gz`), `lme4`, `lmerTest`,
 - **Effect allele.** In the variant catalogue and all summary statistics, `A2`
   is the effect allele: the sign of the Z-score refers to `A2`. `A1` is the
   other allele.
-- **`BETA` holds Z-scores.** The ICA component files already contain Z-scores.
-  The column is called `BETA` only so that standard tools recognise it.
+- **`BETA` holds the component weights.** These are the `melodic_oIC` values
+  exported by genomica, treated as Z-scores (open issue: see concern B6). The
+  column is called `BETA` only so that standard tools recognise it.
 - **P is computed from Z.** Only the Z-score files are read. Step 2 computes
   two-sided p-values as `P = 2·Φ(−|Z|)`. Old `p_val_component<i>.txt` files are
   not used; the toy data writes them only for the original code in `reference/`.
@@ -522,21 +523,32 @@ What this means for GenRomica:
    GenRomica (see [Not applied](#not-applied)). Compare the number of matched
    variants per score in `*_snp_matching.csv`, and consider an INFO or MAF
    threshold for the 5-million set.
-4. **`melodic_oIC` values may not be Z-scores.** In FSL MELODIC,
-   `melodic_IC` holds the component maps converted to Z-statistics, and
-   `melodic_oIC` holds the original (unconverted) maps. Step 2 treats the
-   values as Z and computes P = 2Φ(−|Z|). The QC summary (`component_z_summary.csv`:
-   SD and λ) shows whether the values are on a Z scale. The P values are only
-   meaningful if they are, and they affect QC filter 1 (P > 0). **(check)**
+4. **Open issue: component weights are `melodic_oIC`, not Z-scores.**
+   `stage_6_melodic_to_text.sh` exports `melodic_oIC`, the original component
+   maps. MELODIC's Z-statistic maps are `melodic_IC`: each value divided by that
+   variant's residual noise SD. GenRomica applies no z-transform. Step 2 uses
+   the `melodic_oIC` values as the weights (`BETA`) and computes
+   P = 2Φ(−|Z|) from them. Consequences:
+   - The GPS uses the original weights. A single scaling factor per component
+     would not change any result, because the GPS is z-scored before modelling.
+     A per-variant conversion such as `melodic_IC` changes the relative SNP
+     weights and therefore the GPS.
+   - P is only valid on a Z scale. P is used only in QC filter 1 (P > 0), so on
+     another scale that filter removes a different set of variants.
+   - `component_z_summary.csv` (SD and λ per component) shows how far the
+     values are from a Z scale.
+
+   To decide: use `melodic_oIC` or `melodic_IC` as weights, and whether to
+   z-transform before computing P. See concern B6.
 5. **Component sign is arbitrary.** An ICA component and its negative are the
    same solution. The direction of a GPS association must be read together with
    the sign of each trait's loading in `melodic_mix` (the trait-by-component
    matrix). Use the components and loadings from the same MELODIC run.
 6. **Component order.** MELODIC orders components by explained variance, and a
    rerun can change order and sign. Keep the exact run used for scoring.
-7. **Effect allele.** Pan-UKB variant IDs are `chr_pos_ref_alt`, and `beta`
-   refers to the alt allele. The catalogue's A2 (effect allele) must be the alt
-   allele. **(check)**
+7. **Effect allele (confirmed).** Pan-UKB variant IDs are `chr_pos_ref_alt`,
+   and `beta` refers to the alt allele. The catalogue's A2, the second allele
+   column, is the alt allele and sets the sign of the weights.
 8. **Genome build.** Pan-UKB positions are GRCh37, so the GenR genotypes must
    also be GRCh37 for step 4 to match on position (concern A5).
 9. **Ancestry.** The weights come from European-ancestry GWAS, which supports
@@ -602,6 +614,12 @@ original results can be replicated first.
    data, score performance will differ by ancestry. Four gPCs may not fully
    control stratification; consider restricting to, or stratifying by,
    genetic ancestry.
+6. **Open issue: component weights are not Z-transformed.** The component
+   files are `melodic_oIC` (original maps), not MELODIC's Z-statistic maps
+   (`melodic_IC`), and GenRomica does not z-transform them. They are used as
+   weights as they are, and P is computed from them as if they were Z-scores.
+   Details in [Link to the genomica pipeline](#link-to-the-genomica-pipeline),
+   point 4.
 
 ### C. Statistical models
 
