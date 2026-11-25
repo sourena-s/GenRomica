@@ -449,6 +449,9 @@ score set tested one score at a time, to `<results_dir>/figures/`:
   - Panel a shows H1. Triangles point up or down with the sign of the estimate.
   - Panel b shows H2.
   - Each outcome has one point per component (20 for C1–C20).
+  - Component scores `C1`…`C20` are labelled `GPS1`…`GPS20` in the figures
+    (`label_score()` in `R/06_plot_results.R`). The pipeline keeps the names
+    `C1`…`C20` internally.
   - The red dashed line marks p = 0.05 for a single test. The purple dashed
     line marks the FDR 5% threshold across all scores and outcomes of the
     panel. Points passing FDR are labelled.

@@ -53,6 +53,10 @@ col_fdr <- "#6250d6"; col_nominal <- "#e34948"
 
 label_outcome <- function(x) ifelse(x %in% names(outcome_labels), outcome_labels[x], x)
 
+# Score names in the figures: GenomICA component scores C1, C2, ... are shown as
+# GPS1, GPS2, ... (GenomICA polygenic scores). Other score names are unchanged.
+label_score <- function(x) sub("^C([0-9]+)$", "GPS\\1", x)
+
 theme_figure <- function() {
   theme_classic(base_size = 10) %+replace% theme(
     text = element_text(colour = ink),
@@ -126,7 +130,7 @@ phewas_plot <- function(d, set_name) {
               label = "FDR 5% (all tests)", inherit.aes = FALSE,
               colour = col_fdr, size = 2.7, hjust = -0.05, vjust = 0.4, fontface = "bold") +
     geom_point(aes(fill = domain, shape = direction), colour = "white", stroke = 0.3, size = 2.3) +
-    geom_text_repel(data = hits, aes(label = predictor), size = 2.6, colour = ink,
+    geom_text_repel(data = hits, aes(label = label_score(predictor)), size = 2.6, colour = ink,
                     min.segment.length = 0, segment.colour = ink_muted, segment.size = 0.25,
                     box.padding = 0.3, seed = 1) +
     geom_text(data = axis_labels, aes(x = outcome_x, y = -Inf, label = label_outcome(outcome)),
@@ -166,7 +170,8 @@ heatmap_plot <- function(d, hyp, set_name) {
   d[, outcome_label := factor(label_outcome(outcome),
                               levels = unique(label_outcome(d[order(domain, match(outcome, names(outcome_labels)))]$outcome)))]
   scores <- unique(d$predictor)
-  d[, predictor := factor(predictor, levels = rev(scores[order(as.integer(gsub("\\D", "", scores)))]))]
+  scores <- scores[order(as.integer(gsub("\\D", "", scores)))]
+  d[, predictor := factor(label_score(predictor), levels = rev(label_score(scores)))]
   d[, mark := stars(p_value, p_fdr)]
 
   if (hyp == "H1") {
