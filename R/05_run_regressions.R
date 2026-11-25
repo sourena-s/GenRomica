@@ -136,6 +136,17 @@ joint_f_test <- function(model, terms) {
   contestMD(model, contrast, ddf = "Satterthwaite")
 }
 
+# Adds centred age (age_c) and its square (age2). The original code centres at
+# cfg$reference_age (17). Centring does not change H1, H2 or R2; it changes the
+# meaning and precision of the single M2 coefficients (see README, concern C1).
+centre_age <- function(d) {
+  centre <- cfg$reference_age
+  # Uncomment to centre on the average age of the model's analysis sample instead:
+  # centre <- mean(d$age)
+  d[, `:=`(age_c = age - centre, age2 = (age - centre)^2)]
+  d
+}
+
 # Name of the fixed effect for the interaction a:b (either order)
 interaction_term <- function(model, a, b) {
   terms <- names(fixef(model))
@@ -222,7 +233,7 @@ fit_lmm_one_score <- function(data, score_name) {
   d[, outcome := z(outcome)]
   d[, score := z_by_id(score, idc)]
   d <- standardise_gpcs(d)
-  d[, `:=`(age_c = age - cfg$reference_age, age2 = (age - cfg$reference_age)^2)]
+  d <- centre_age(d)
 
   covars <- varying_covariates(d)
   random_intercept <- "(1 | idc)"
@@ -323,7 +334,7 @@ fit_lmm_score_set <- function(data, scores, label) {
   d[, outcome := z(outcome)]
   for (s in scores) d[, (s) := z_by_id(get(s), idc)]
   d <- standardise_gpcs(d)
-  d[, `:=`(age_c = age - cfg$reference_age, age2 = (age - cfg$reference_age)^2)]
+  d <- centre_age(d)
 
   covars <- varying_covariates(d)
   random_intercept <- "(1 | idc)"

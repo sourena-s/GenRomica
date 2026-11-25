@@ -101,18 +101,18 @@ In the original code, a measure missing at a wave was skipped silently. Here
 every `<measure>_<wave>` listed in `cfg$longitudinal` must exist. If a measure
 was not collected at a wave, remove that row from the config (there is an
 example there). For example, CBCL/1½-5 at wave f05 has no rule-breaking scale.
-This gives the same results as the original code, but the omission is now explicit.
+Results match the original code, and the config shows which waves each measure uses.
 
 ### Answers to review questions
 
-**Is the cleaning done in place?** No, in both versions. Each file is read from
+**Is the cleaning done in place?** No. Each file is read from
 an input folder and a cleaned copy is written to a separate output folder; the
 input files are never changed. In memory, `df <- df[...]` creates a filtered
 copy. The `:=` assignments change the freshly read table in place, which has
 no effect outside the script.
 
-**Why not use `bigsnpr::snp_match`?** It is now used in step 4, where it matters
-most. `snp_match` aligns the weights with the genotype data:
+**Why not use `bigsnpr::snp_match`?** It is used in step 4, where it aligns the
+weights with the genotype data:
 
 - it joins on chromosome and position;
 - it flips the sign of a weight when the genotype data count the other allele;
@@ -126,7 +126,7 @@ enter the score with the wrong sign.
 Z-scores, p-values outside (0, 1], non-autosomal SNPs and non-ACGT alleles.
 Palindromic SNPs are still removed in step 3 to replicate the original.
 
-Strand flipping follows the usual procedure. Matching first runs with
+Matching first runs with
 `strand_flip = TRUE`. If fewer than `cfg$min_strand_flips` SNPs (default 10)
 needed a strand flip, it reruns with `strand_flip = FALSE`, which keeps
 strand-ambiguous SNPs. Because step 3 already removes palindromic SNPs, the
@@ -478,8 +478,8 @@ estimate, p-value or R². Check both parts against the real script.
 
 ## Concerns
 
-These are recorded for discussion and have **not** been acted on, so that
-the original results can be replicated first.
+These are open for discussion. None has been acted on yet, so that the
+original results can be replicated first.
 
 ### A. Pipeline and data handling
 
@@ -505,7 +505,7 @@ the original results can be replicated first.
    precomputed scores in `cfg$score_files`.
 8. **Duplicated `idc`.** The original code would silently use the first row
    (`match()`); the pipeline now stops.
-9. **Warnings were invisible.** The original code captured errors but not
+9. **Warnings were not recorded.** The original code captured errors but not
    warnings, such as non-convergence. They are now logged in
    `model_warnings.csv` without changing any result. Singular fits are flagged
    in `results.csv` (`singular`), but their p-values are still reported.
@@ -525,8 +525,9 @@ the original results can be replicated first.
 3. **Lowercase alleles are dropped** rather than upper-cased.
 4. **Score construction.** The score is Σ dosage × Z over all SNPs, with no LD
    clumping or shrinkage. Correlated SNPs therefore count several times, and
-   Z-scores scale with the discovery study's sample size. That is fine for an
-   ICA-component projection, but the score is not an optimised PGS.
+   Z-scores scale with the discovery study's sample size. The score projects
+   genotypes onto the ICA component; LD clumping or shrinkage (e.g. LDpred2)
+   would be needed for an optimised PGS.
 5. **Ancestry.** GenR is multi-ethnic. If the ICA study used European-ancestry
    data, score performance will differ by ancestry. Four gPCs may not fully
    control stratification; consider restricting to, or stratifying by,
@@ -537,45 +538,34 @@ the original results can be replicated first.
 1. **Age centred at 17, the oldest wave.** See the caution box below.
 
 > [!CAUTION]
-> **Age centred at 17, the oldest wave.** `age_c` and `age_c²` are then
-> highly correlated, and in M2 the score main effect is the effect at age 17.
+> **Age centred at 17, the oldest wave.** The centring age changes the
+> interpretation and precision of single coefficients in M2. The H1 and H2
+> tests, fitted values and R² stay the same.
 >
-> **Does it bias the results? No.** Centring age at any value *c* is a linear
-> reparametrisation: $`(a - c)^2 = a^2 - 2ca + c^2`$, so the quadratic age
-> terms, and their interactions with the score, span the same model whatever
-> *c* is. Fitted values, likelihood, variance components and R² are
-> identical.
->
-> **Does it change significance?** Not for any hypothesis we test:
-> - **H1** ($`\beta_3`$ in M1): M1 has no score × age terms, so $`\beta_3`$
->   and its p-value do not depend on *c*.
-> - **H2** (joint test $`\beta_4 = \beta_5 = 0`$ in M2): moving the centre
->   *d* years earlier (age $`a = a' + d`$) maps $`(\beta_4, \beta_5)`$ to
->   $`(\beta_4 + 2d\,\beta_5,\ \beta_5)`$. This is an invertible transform,
->   so $`\beta_4 = \beta_5 = 0`$ holds in one parametrisation exactly when it
->   holds in the other, and the joint *F*-test is unchanged.
-> - **What does change:** the meaning, SE and p-value of single M2
->   coefficients. These are $`\beta_3`$ (the effect at age *c*) and
->   $`\beta_4`$ (the linear GPS × age slope at age *c*). In the results,
->   this is `age_interaction`, `age_interaction_se` and `age_interaction_p` in
->   `h2_details.csv`. $`\beta_5`$ does not change.
->
-> **Checked on the toy data:** re-centring age at 11 instead of 17 changed
-> H1 and H2 p-values, estimates and R² by less than 2×10⁻⁷ (optimiser
-> tolerance). The joint F changed by less than 3×10⁻⁷. The linear
-> interaction (`age_interaction`) changed: its SE was 3.4 times larger when
-> centred at 17, and its p-value changed by 0.28 (median).
->
-> **So it affects interpretation and the stability of single coefficients,
-> not bias or the tested hypotheses.** Centring at 17 extrapolates the
-> linear slope to the edge of the age range, so `age_interaction` in
-> `h2_details.csv` is imprecise and refers to age 17. Centre at the mean
-> age, or use orthogonal polynomials, if those single coefficients are
-> reported.
->
-> **Other standardisation steps** (z-scoring the outcome, the GPS and the
-> gPCs) are linear rescalings too. They change only the units of the
-> estimates, not p-values.
+> - **Single coefficients.** In M2, $`\beta_3`$ is the GPS association at the
+>   centring age, and $`\beta_4`$ (`age_interaction` in `h2_details.csv`) is the
+>   linear GPS × age slope at that age. At 17, the edge of the age range,
+>   `age_c` and `age_c²` are strongly correlated and these two estimates are
+>   imprecise. $`\beta_5`$ is the same for any centring age.
+> - **H1** ($`\beta_3`$ in M1). M1 has no GPS × age terms, so $`\beta_3`$ and its
+>   p-value are the same for any centring age.
+> - **H2** (joint test $`\beta_4 = \beta_5 = 0`$ in M2). Moving the centre *d*
+>   years earlier ($`a = a' + d`$) turns $`(\beta_4, \beta_5)`$ into
+>   $`(\beta_4 + 2d\,\beta_5,\ \beta_5)`$. Both pairs are zero together, so the
+>   joint *F*-test gives the same result.
+> - **Fitted model.** $`(a - c)^2 = a^2 - 2ca + c^2`$, so the age terms and their
+>   GPS interactions describe the same model for any centring age *c*. Fitted
+>   values, likelihood, variance components and R² are identical.
+> - **Toy data check.** Centring at 11 instead of 17 changed H1 and H2
+>   p-values, estimates and R² by less than 2×10⁻⁷. The SE of
+>   `age_interaction` was 3.4 times larger at 17, and its p-value changed by
+>   0.28 (median).
+> - **Centring on the average age.** Uncomment `# centre <- mean(d$age)` in
+>   `centre_age()` in `R/05_run_regressions.R` to centre on the average age of
+>   each model's analysis sample. On the toy data this changed H1 and H2
+>   p-values by less than 2×10⁻⁶.
+> - **Other standardisation.** z-scoring the outcome, the GPS and the gPCs
+>   changes the units of the estimates and leaves p-values unchanged.
 
 2. **Different CBCL instruments.** Wave f05 used the CBCL/1½-5, and later waves
    used the CBCL/6-18. The scales differ in items and range, but are pooled and
@@ -624,7 +614,7 @@ Points not yet confirmed are marked **(check)**.
 #### Used in the current analysis
 
 **CBCL at f05 vs f09, f13 and f17: not comparable.**
-- In Generation R, the f05 wave (about age 6, range 5–7; not age 5) used the
+- In Generation R, the f05 wave (about age 6, range 5–7) used the
   preschool version, CBCL/1½–5 (99 items), confirmed in published papers
   ([stability of problem behaviour](https://pmc.ncbi.nlm.nih.gov/articles/PMC4729812),
   [age-6 mental health](https://pmc.ncbi.nlm.nih.gov/articles/PMC4628613)). The
