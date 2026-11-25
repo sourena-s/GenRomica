@@ -534,10 +534,46 @@ the original results can be replicated first.
 
 ### C. Statistical models
 
-1. **Age centred at 17, the oldest wave.** `age_c` and `age_c²` are then highly
-   correlated, and in M2 the score main effect is the effect at age 17. In M1
-   (H1) centring does not change b3, but centring at the mean age, or using
-   orthogonal polynomials, would make M2 more stable and easier to interpret.
+1. **Age centred at 17, the oldest wave.**
+
+   > [!CAUTION]
+   > **Age centred at 17, the oldest wave.** `age_c` and `age_c²` are then
+   > highly correlated, and in M2 the score main effect is the effect at age 17.
+   >
+   > **Does it bias the results? No.** Centring age at any value *c* is a linear
+   > reparametrisation: $`(a - c)^2 = a^2 - 2ca + c^2`$, so the quadratic age
+   > terms, and their interactions with the score, span the same model whatever
+   > *c* is. Fitted values, likelihood, variance components and R² are
+   > identical.
+   >
+   > **Does it change significance?** Not for any hypothesis we test:
+   > - **H1** ($`\beta_3`$ in M1): M1 has no score × age terms, so $`\beta_3`$
+   >   and its p-value do not depend on *c*.
+   > - **H2** (joint test $`\beta_4 = \beta_5 = 0`$ in M2): changing *c* maps
+   >   $`(\beta_4, \beta_5)`$ to $`(\beta_4 - 2d\,\beta_5,\ \beta_5)`$, an
+   >   invertible transform, so the joint *F*-test is unchanged.
+   > - **What does change:** the meaning, SE and p-value of single M2
+   >   coefficients. These are $`\beta_3`$ (the effect at age *c*) and
+   >   $`\beta_4`$ (the linear GPS × age slope at age *c*). In the results,
+   >   this is `age_interaction`, `age_interaction_se` and `age_interaction_p` in
+   >   `h2_details.csv`. $`\beta_5`$ does not change.
+   >
+   > **Checked on the toy data:** re-centring age at 11 instead of 17 changed
+   > H1 and H2 p-values, estimates and R² by less than 2×10⁻⁷ (optimiser
+   > tolerance). The joint F changed by less than 3×10⁻⁷. The linear
+   > interaction (`age_interaction`) changed: its SE was 3.4 times larger when
+   > centred at 17, and its p-value changed by 0.28 (median).
+   >
+   > **So it affects interpretation and the stability of single coefficients,
+   > not bias or the tested hypotheses.** Centring at 17 extrapolates the
+   > linear slope to the edge of the age range, so `age_interaction` in
+   > `h2_details.csv` is imprecise and refers to age 17. Centre at the mean
+   > age, or use orthogonal polynomials, if those single coefficients are
+   > reported.
+   >
+   > **Other standardisation steps** (z-scoring the outcome, the GPS and the
+   > gPCs) are linear rescalings too. They change only the units of the
+   > estimates, not p-values.
 2. **Different CBCL instruments.** Wave f05 used the CBCL/1½-5, and later waves
    used the CBCL/6-18. The scales differ in items and range, but are pooled and
    z-scored together. Standardising within wave, or modelling the instrument,
