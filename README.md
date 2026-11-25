@@ -169,7 +169,7 @@ Full model, with every term labelled:
 &+ \underbrace{\gamma_{\mathrm{sex}}\,\mathrm{sex}_i}_{\text{sex}}
  + \underbrace{\boldsymbol{\gamma}_{\mathrm{coh}}^{\top}\mathbf{c}_i}_{\text{genotyping cohort}}
  + \underbrace{\textstyle\sum_{p=1}^{4}\gamma_{p}\,\mathrm{gPC}_{p,i}}_{\text{ancestry: gPC 1 to 4}}
- + \underbrace{u_i}_{\text{child random intercept}}
+ + {\color{red}\underbrace{u_i}_{\text{child random intercept}}}
  + \underbrace{\varepsilon_{ij}}_{\text{residual}}
 \end{aligned}
 ```
@@ -184,8 +184,17 @@ The three nested models differ only in which GPS terms are included:
 \mathcal{M}_2:\ \text{all terms} \ \ (\text{GPS}\times\text{age})
 ```
 
+Fitted in R (`R/05_run_regressions.R`; the formula is built with `reformulate()`, and covariates that are constant in the sample are left out):
+
 ```math
-u_i \sim \mathcal{N}(0, \sigma_u^2), \qquad \varepsilon_{ij} \sim \mathcal{N}(0, \sigma_\varepsilon^2), \qquad u_i \perp \varepsilon_{ij}
+\begin{aligned}
+&\mathcal{M}_0:\ \texttt{lmer(outcome }\sim\texttt{ age\_c + age2 + sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\texttt{(1 | idc)}}\texttt{, REML = FALSE)} \\[2pt]&\mathcal{M}_1:\ \texttt{lmer(outcome }\sim\texttt{ age\_c + age2 + score + sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\texttt{(1 | idc)}}\texttt{, REML = FALSE)} \\[2pt]&\mathcal{M}_2:\ \texttt{lmer(outcome }\sim\texttt{ age\_c + age2 + score + score:age\_c + score:age2} \\
+&\qquad\quad \texttt{+ sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\texttt{(1 | idc)}}\texttt{, REML = FALSE)}
+\end{aligned}
+```
+
+```math
+{\color{red}u_i \sim \mathcal{N}(0, \sigma_u^2)}, \qquad \varepsilon_{ij} \sim \mathcal{N}(0, \sigma_\varepsilon^2), \qquad u_i \perp \varepsilon_{ij}
 ```
 
 | Symbol | Meaning |
@@ -233,8 +242,17 @@ z-transformed across children:
 &+ \underbrace{\gamma_{\mathrm{sex}}\,\mathrm{sex}_i}_{\text{sex}}
  + \underbrace{\boldsymbol{\gamma}_{\mathrm{coh}}^{\top}\mathbf{c}_i}_{\text{genotyping cohort}}
  + \underbrace{\textstyle\sum_{p=1}^{4}\gamma_{p}\,\mathrm{gPC}_{p,i}}_{\text{ancestry: gPC 1 to 4}}
- + \underbrace{u_i}_{\text{child random intercept}}
+ + {\color{red}\underbrace{u_i}_{\text{child random intercept}}}
  + \underbrace{\varepsilon_{ij}}_{\text{residual}}
+\end{aligned}
+```
+
+Fitted in R (`R/05_run_regressions.R`; the formula is built with `reformulate()`, and covariates that are constant in the sample are left out):
+
+```math
+\begin{aligned}
+&\texttt{lmer(outcome }\sim\texttt{ age\_c + age2 + C1 + C2 + ... + C20} \\
+&\qquad \texttt{+ sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\texttt{(1 | idc)}}\texttt{, REML = FALSE)}
 \end{aligned}
 ```
 
@@ -257,6 +275,14 @@ For SES, diet and online use (one row per child):
 &+ \underbrace{\delta\,\mathrm{age}_i}_{\text{age at measurement (if available)}}
  + \underbrace{\varepsilon_{i}}_{\text{residual}},
 \qquad \varepsilon_i \sim \mathcal{N}(0, \sigma^2)
+\end{aligned}
+```
+
+Fitted in R with ordinary least squares (`R/05_run_regressions.R`; the formula is built with `reformulate()`, and covariates that are constant in the sample are left out):
+
+```math
+\begin{aligned}
+&\texttt{lm(outcome }\sim\texttt{ [age] + sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + score)}\qquad\text{(no random effect)}
 \end{aligned}
 ```
 
