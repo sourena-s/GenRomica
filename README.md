@@ -155,12 +155,33 @@ conventional polygenic scores. All are analysed in the same way.
 Linear mixed model, fitted by maximum likelihood. For measurement $`j`$
 (wave f05, f09, f13 or f17) of child $`i`$:
 
+Full model, with every term labelled:
+
 ```math
 \begin{aligned}
-\mathcal{M}_0:\quad y_{ij} &= \beta_0 + \beta_1 a_{ij} + \beta_2 a_{ij}^2 + \boldsymbol{\gamma}^{\top}\mathbf{x}_i + u_i + \varepsilon_{ij}\\[4pt]
-\mathcal{M}_1:\quad y_{ij} &= \beta_0 + \beta_1 a_{ij} + \beta_2 a_{ij}^2 + \beta_3 S_i + \boldsymbol{\gamma}^{\top}\mathbf{x}_i + u_i + \varepsilon_{ij}\\[4pt]
-\mathcal{M}_2:\quad y_{ij} &= \beta_0 + \beta_1 a_{ij} + \beta_2 a_{ij}^2 + \beta_3 S_i + \beta_4 S_i a_{ij} + \beta_5 S_i a_{ij}^2 + \boldsymbol{\gamma}^{\top}\mathbf{x}_i + u_i + \varepsilon_{ij}
+\underbrace{y_{ij}}_{\text{outcome}}
+={}& \underbrace{\beta_0}_{\text{intercept}}
+ + \underbrace{\beta_1\,a_{ij}}_{\text{age}}
+ + \underbrace{\beta_2\,a_{ij}^2}_{\text{age}^2}
+ + \underbrace{\beta_3\,S_i}_{\text{GPS}}
+ + \underbrace{\beta_4\,S_i\,a_{ij}}_{\text{GPS}\,\times\,\text{age}}
+ + \underbrace{\beta_5\,S_i\,a_{ij}^2}_{\text{GPS}\,\times\,\text{age}^2}\\[10pt]
+&+ \underbrace{\gamma_{\mathrm{sex}}\,\mathrm{sex}_i}_{\text{sex}}
+ + \underbrace{\boldsymbol{\gamma}_{\mathrm{coh}}^{\top}\mathbf{c}_i}_{\text{genotyping cohort}}
+ + \underbrace{\textstyle\sum_{p=1}^{4}\gamma_{p}\,\mathrm{gPC}_{p,i}}_{\text{ancestry: gPC 1 to 4}}
+ + \underbrace{u_i}_{\text{child random intercept}}
+ + \underbrace{\varepsilon_{ij}}_{\text{residual}}
 \end{aligned}
+```
+
+The three nested models differ only in which GPS terms are included:
+
+```math
+\mathcal{M}_0:\ \beta_3=\beta_4=\beta_5=0 \ \ (\text{no GPS})
+\qquad
+\mathcal{M}_1:\ \beta_4=\beta_5=0 \ \ (\text{GPS main effect})
+\qquad
+\mathcal{M}_2:\ \text{all terms} \ \ (\text{GPS}\times\text{age})
 ```
 
 ```math
@@ -172,14 +193,14 @@ u_i \sim \mathcal{N}(0, \sigma_u^2), \qquad \varepsilon_{ij} \sim \mathcal{N}(0,
 | $`y_{ij}`$ | **Outcome** of child $`i`$ at wave $`j`$. Examples: the CBCL anxious/depressed sum score (`sum_anx_<wave>`), total grey-matter volume (`TotalGrayVol_<wave>`), mean fractional anisotropy (`mean_FA_genr_<wave>`). It is z-transformed once, over all observations in the model's analysis sample, so across children *and* waves together. |
 | $`a_{ij}`$ | **Age** at that measurement minus 17 years. $`a_{ij}^2`$ is its square; together they give a quadratic developmental trajectory centred at age 17. |
 | $`S_i`$ | **Score** of child $`i`$ (a GPS or PGS). It is constant over waves and z-transformed across children: the mean and SD are taken over individuals, each counted once however many measurements they have. |
-| $`\mathbf{x}_i`$ | **Covariates:** sex, genotyping cohort (genotyping batch/array) and gPC1–4. The gPCs are the first four principal components of the genome-wide genotypes, which capture genetic ancestry; they are z-transformed across children. A covariate that is constant in the analysis sample is dropped. |
+| $`\mathrm{sex}_i`$, $`\mathbf{c}_i`$, $`\mathrm{gPC}_{p,i}`$ | **Covariates:** sex (indicator); genotyping cohort (genotyping batch/array, as dummy variables $`\mathbf{c}_i`$); gPC1–4, the first four principal components of the genome-wide genotypes, which capture genetic ancestry (z-transformed across children). A covariate that is constant in the analysis sample is dropped. |
 | $`u_i`$ | **Random intercept** of child $`i`$: how far that child's average outcome level lies from the population intercept $`\beta_0`$, the same at every wave. It models the correlation between repeated measurements of the same child. |
 | $`\varepsilon_{ij}`$ | Residual error of measurement $`j`$ of child $`i`$. |
 
 **Why these terms.**
 - **Fixed effects:**
   - $`\beta_1, \beta_2`$ describe the average outcome trajectory with age.
-  - $`\boldsymbol{\gamma}`$ adjusts for sex differences, genotyping batch effects and population stratification (ancestry differences correlated with both score and outcome).
+  - $`\gamma_{\mathrm{sex}}`$, $`\boldsymbol{\gamma}_{\mathrm{coh}}`$ and $`\gamma_1,\dots,\gamma_4`$ adjust for sex differences, genotyping batch effects and population stratification (ancestry differences correlated with both score and outcome).
   - $`\beta_3`$ is the score association.
   - $`\beta_4, \beta_5`$ let that association change with age.
 - **Random effects:** only $`u_i`$. There are no random slopes, so all children share one trajectory shape apart from the score terms. There is no family-level effect (see concern C5).
@@ -203,7 +224,18 @@ All $`K`$ scores of a set (e.g. the 20 component GPS) enter one model, each
 z-transformed across children:
 
 ```math
-y_{ij} = \beta_0 + \beta_1 a_{ij} + \beta_2 a_{ij}^2 + \sum_{k=1}^{K} \theta_k S_{ik} + \boldsymbol{\gamma}^{\top}\mathbf{x}_i + u_i + \varepsilon_{ij}
+\begin{aligned}
+\underbrace{y_{ij}}_{\text{outcome}}
+={}& \underbrace{\beta_0}_{\text{intercept}}
+ + \underbrace{\beta_1\,a_{ij}}_{\text{age}}
+ + \underbrace{\beta_2\,a_{ij}^2}_{\text{age}^2}
+ + \underbrace{\textstyle\sum_{k=1}^{K}\theta_k\,S_{ik}}_{K\ \text{GPS of one set}}\\[10pt]
+&+ \underbrace{\gamma_{\mathrm{sex}}\,\mathrm{sex}_i}_{\text{sex}}
+ + \underbrace{\boldsymbol{\gamma}_{\mathrm{coh}}^{\top}\mathbf{c}_i}_{\text{genotyping cohort}}
+ + \underbrace{\textstyle\sum_{p=1}^{4}\gamma_{p}\,\mathrm{gPC}_{p,i}}_{\text{ancestry: gPC 1 to 4}}
+ + \underbrace{u_i}_{\text{child random intercept}}
+ + \underbrace{\varepsilon_{ij}}_{\text{residual}}
+\end{aligned}
 ```
 
 ```math
@@ -215,8 +247,17 @@ y_{ij} = \beta_0 + \beta_1 a_{ij} + \beta_2 a_{ij}^2 + \sum_{k=1}^{K} \theta_k S
 For SES, diet and online use (one row per child):
 
 ```math
-y_i = \beta_0 + \sum_{k} \theta_k S_{ik} + \boldsymbol{\gamma}^{\top}\mathbf{x}_i \;[+\, \delta\, \mathrm{age}_i] + \varepsilon_i,
+\begin{aligned}
+\underbrace{y_{i}}_{\text{outcome}}
+={}& \underbrace{\beta_0}_{\text{intercept}}
+ + \underbrace{\textstyle\sum_{k}\theta_k\,S_{ik}}_{\text{GPS (one, or a set)}}
+ + \underbrace{\gamma_{\mathrm{sex}}\,\mathrm{sex}_i}_{\text{sex}}
+ + \underbrace{\boldsymbol{\gamma}_{\mathrm{coh}}^{\top}\mathbf{c}_i}_{\text{genotyping cohort}}
+ + \underbrace{\textstyle\sum_{p=1}^{4}\gamma_{p}\,\mathrm{gPC}_{p,i}}_{\text{ancestry: gPC 1 to 4}}\\[10pt]
+&+ \underbrace{\delta\,\mathrm{age}_i}_{\text{age at measurement (if available)}}
+ + \underbrace{\varepsilon_{i}}_{\text{residual}},
 \qquad \varepsilon_i \sim \mathcal{N}(0, \sigma^2)
+\end{aligned}
 ```
 
 - The sum has either one score or a whole set.
