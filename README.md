@@ -476,7 +476,7 @@ One panel: outcome against age.
 - Boxplots: outcome per wave (median, IQR, whiskers 1.5 IQR), at the wave's
   median age. Wave names are shown along the top.
 - Dashed curves on top: M2 fixed-effect predictions for the GPS at −1 SD, the mean
-  and +1 SD, with covariates at their sample means and 95% CI bands.
+  and +1 SD, with covariates at their sample means.
 - **Pairs drawn:** those with FDR-corrected p < 0.05 for H1 or H2. If none pass,
   the `cfg$max_trajectory_plots` (default 6) pairs with the smallest p are drawn.
   To choose the pairs yourself, set `cfg$trajectory_pairs` (columns `score`,

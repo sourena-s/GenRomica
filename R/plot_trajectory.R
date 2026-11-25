@@ -4,8 +4,8 @@
 # Shows the existing mixed model M2 of step 5 (R/models.R, fit_lmm_one_score)
 # against the data. Nothing is re-modelled here:
 #   Outcome against age. Points: every observation (scatter per wave).
-#   Boxplots: outcome per wave, at the wave's median age. Curves with 95% CI
-#   bands on top (dashed): M2 fixed-effect predictions for GPS at -1 SD, the mean and
+#   Boxplots: outcome per wave, at the wave's median age. Dashed curves on
+#   top: M2 fixed-effect predictions for GPS at -1 SD, the mean and
 #       +1 SD, with covariates at their sample means.
 
 gps_levels <- c("-1 SD", "Mean", "+1 SD")
@@ -51,10 +51,8 @@ plot_trajectory <- function(fit, score_name, outcome_name, p_text = NULL) {
     geom_point(data = d, aes(age, outcome), colour = ink, alpha = 0.3, size = 0.6, stroke = 0) +
     geom_boxplot(data = d, aes(wave_age, outcome, group = wave), width = box_width,
                  outlier.shape = NA, fill = "white", alpha = 0.75, colour = ink, linewidth = 0.35) +
-    geom_ribbon(data = curves, aes(age, ymin = lower, ymax = upper, fill = level), alpha = 0.22) +
     geom_line(data = curves, aes(age, fit, colour = level), linewidth = 1, linetype = "22") +
     scale_colour_manual(values = gps_colours, name = label_score(score_name), drop = FALSE) +
-    scale_fill_manual(values = gps_colours, name = label_score(score_name), drop = FALSE) +
     scale_x_continuous(sec.axis = dup_axis(breaks = wave_ages$wave_age, labels = wave_ages$wave, name = NULL)) +
     labs(x = "Age (years)", y = y_label) +
     theme_figure() +
@@ -70,6 +68,6 @@ plot_trajectory <- function(fit, score_name, outcome_name, p_text = NULL) {
            "Points: every observation at its age. Boxes: outcome per wave (median, IQR, whiskers 1.5 IQR), ",
            "at the wave's median age.\n",
            "Dashed curves: M2 fixed-effect predictions (step 5) for the GPS at \u22121 SD, the mean and +1 SD, ",
-           "covariates at sample means; bands: 95% CI.")) +
+           "covariates at sample means.")) +
     theme(plot.subtitle = element_text(colour = ink_muted, size = 9, face = "plain"))
 }
