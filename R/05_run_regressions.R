@@ -116,6 +116,17 @@ marginal_r2 <- function(model) {
   as.numeric(r2[1])
 }
 
+# Joint F-test that the fixed effects `terms` are all zero, with Satterthwaite
+# denominator df (lmerTest::contestMD). Used for every mixed-model hypothesis
+# test, so all mixed-model p-values come from the same kind of test. With one
+# term, F = t^2 and the p-value equals that of the Satterthwaite t-test.
+joint_f_test <- function(model, terms) {
+  contrast <- matrix(0, length(terms), length(fixef(model)),
+                     dimnames = list(terms, names(fixef(model))))
+  contrast[cbind(terms, terms)] <- 1
+  contestMD(model, contrast, ddf = "Satterthwaite")
+}
+
 # Name of the fixed effect for the interaction a:b (either order)
 interaction_term <- function(model, a, b) {
   terms <- names(fixef(model))
@@ -178,8 +189,9 @@ safe_fit <- function(expr, label) {
 # Estimation: maximum likelihood (REML = FALSE).
 #
 # Tests
-#   H1: b3 = 0 in M1 (t-test, Satterthwaite df). M1 has no interaction, so b3 is
-#       the association averaged over ages, in SD of outcome per SD of score.
+#   H1: b3 = 0 in M1 (F-test with 1 df, Satterthwaite; identical p-value to the
+#       Satterthwaite t-test). M1 has no interaction, so b3 is the association
+#       averaged over ages, in SD of outcome per SD of score.
 #   H2: b4 = b5 = 0 in M2 (joint F-test, Satterthwaite df): does the association
 #       change with age? In M2, b3 is the association at age 17.
 #   Incremental R2 (Nakagawa marginal): M1 - M0 for H1, M2 - M1 for H2.
@@ -220,13 +232,16 @@ fit_lmm_one_score <- function(data, score_name) {
   coef_m1 <- summary(m1)$coefficients
   coef_m2 <- summary(m2)$coefficients
 
+  # H1: F-test of the score effect in M1
+  h1_test <- joint_f_test(m1, "score")
+  h1_p <- h1_test[1, "Pr(>F)"]
+  # The old code used the t-test p-value from summary(m1) (same value):
+  # h1_p <- coef_m1["score", "Pr(>|t|)"]
+
   # H2: joint F-test of the two score x age terms
   age_term  <- interaction_term(m2, "score", "age_c")
   age2_term <- interaction_term(m2, "score", "age2")
-  contrast <- matrix(0, 2, length(fixef(m2)), dimnames = list(NULL, names(fixef(m2))))
-  contrast[1, age_term]  <- 1
-  contrast[2, age2_term] <- 1
-  h2_test <- contestMD(m2, contrast, ddf = "Satterthwaite")
+  h2_test <- joint_f_test(m2, c(age_term, age2_term))
 
   n_id <- uniqueN(d$idc)
 
@@ -234,7 +249,7 @@ fit_lmm_one_score <- function(data, score_name) {
     hypothesis     = c("H1", "H2"),
     estimate       = c(coef_m1["score", "Estimate"], NA_real_),
     std_error      = c(coef_m1["score", "Std. Error"], NA_real_),
-    p_value        = c(coef_m1["score", "Pr(>|t|)"], h2_test[1, "Pr(>F)"]),
+    p_value        = c(h1_p, h2_test[1, "Pr(>F)"]),
     incremental_r2 = c(r2_m1 - r2_m0, r2_m2 - r2_m1),
     predictor      = score_name,
     n_id           = n_id,
@@ -278,8 +293,9 @@ fit_lmm_one_score <- function(data, score_name) {
 #   M0: y_ij = b0 + b1 a_ij + b2 a_ij^2 + g'X_i                      + u_i + e_ij
 #   M1: y_ij = b0 + b1 a_ij + b2 a_ij^2 + g'X_i + sum_k c_k S_ik     + u_i + e_ij
 #
-# H1: c_1 = ... = c_K = 0, likelihood-ratio test of M1 vs M0 (chi-square, K df;
-#     this is why both models are fitted with maximum likelihood).
+# H1: c_1 = ... = c_K = 0, joint F-test in M1 (K numerator df, Satterthwaite
+#     denominator df), the same test as H2 in section 4. The original code used
+#     a likelihood-ratio test of M1 vs M0 instead (see below).
 # No per-score estimate is reported. Incremental R2 = R2(M1) - R2(M0).
 
 fit_lmm_score_set <- function(data, scores, label) {
@@ -307,13 +323,16 @@ fit_lmm_score_set <- function(data, scores, label) {
   m1 <- lmer(reformulate(c("age_c", "age2", scores, covars, random_intercept), "outcome"),
              data = d, REML = FALSE)
 
-  lr_test <- anova(m0, m1)
+  h1_p <- joint_f_test(m1, scores)[1, "Pr(>F)"]
+  # The old code used a likelihood-ratio chi-square test of M1 vs M0 (K df);
+  # to reproduce the original results, use this line instead:
+  # h1_p <- anova(m0, m1)[2, "Pr(>Chisq)"]
 
   data.table(
     hypothesis     = "H1",
     estimate       = NA_real_,
     std_error      = NA_real_,
-    p_value        = lr_test[2, "Pr(>Chisq)"],
+    p_value        = h1_p,
     incremental_r2 = marginal_r2(m1) - marginal_r2(m0),
     predictor      = label,
     n_id           = uniqueN(d$idc),

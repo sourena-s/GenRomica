@@ -68,22 +68,54 @@ Sys.setenv(ORIGINAL_DATA_DIR = original_dir,
 message("Running the original regression code on the toy data ...")
 system2("Rscript", "reference/original_regression.R", stdout = FALSE, stderr = FALSE)
 
-compare_table <- function(name, keys) {
-  a <- fread(file.path(toy, "reference_out", "results", name))
-  b <- fread(file.path(toy, "pipeline_out", "results", name))
+read_results <- function(source, name) {
+  path <- file.path(toy, source, "results", name)
+  if (file.size(path) == 0) data.table() else fread(path)
+}
+
+# Intended change: the new code tests H1 of the combined score sets in the
+# mixed models with a Satterthwaite F-test (contestMD); the original used a
+# likelihood-ratio test. Those p-values, and the FDR values of the combined
+# sets that depend on them, are compared separately below.
+changed_rows <- function(d) {
+  d[, score_group %like% "_combined$" & domain %in% c("CBCL", "MRI", "DTI")]
+}
+
+compare_table <- function(name, keys, mask_changed = FALSE) {
+  a <- read_results("reference_out", name)
+  b <- read_results("pipeline_out", name)
   if (!nrow(a) && !nrow(b)) return(TRUE)
   if (nrow(a) != nrow(b)) return(sprintf("%d vs %d rows", nrow(a), nrow(b)))
   setcolorder(b, names(a))
   setkeyv(a, keys); setkeyv(b, keys)
+  if (mask_changed) {
+    for (d in list(a, b)) {
+      d[changed_rows(d), p_value := NA]
+      d[score_group %like% "_combined$", p_fdr := NA]
+    }
+  }
   all.equal(a, b, tolerance = 1e-10, check.attributes = FALSE)
 }
-check("results.csv matches original (tolerance 1e-10)",
-      compare_table("results.csv", c("score_group", "predictor", "domain", "outcome", "hypothesis")))
+check("results.csv matches original, apart from the intended change (tolerance 1e-10)",
+      compare_table("results.csv", c("score_group", "predictor", "domain", "outcome", "hypothesis"),
+                    mask_changed = TRUE))
 check("h2_details.csv matches original",
       compare_table("h2_details.csv", c("score_group", "predictor", "domain", "outcome")))
 check("covariate_results.csv matches original",
       compare_table("covariate_results.csv", c("score_group", "predictor", "domain", "outcome", "term")))
 check("failed_models.csv matches original", compare_table("failed_models.csv", "model"))
+
+# Show how the F-test and likelihood-ratio p-values of the combined sets compare
+keys <- c("score_group", "domain", "outcome")
+lrt <- read_results("reference_out", "results.csv")
+f   <- read_results("pipeline_out", "results.csv")
+lrt <- lrt[changed_rows(lrt), c(keys, "p_value"), with = FALSE]
+f   <- f[changed_rows(f), c(keys, "p_value"), with = FALSE]
+both <- merge(lrt, f, by = keys, suffixes = c("_LRT", "_F"))
+cat(sprintf("\nCombined-set H1 (%d models), F-test vs original LRT p-values:\n", nrow(both)))
+cat(sprintf("  correlation of -log10(p): %.4f, median ratio p_F / p_LRT: %.3f\n",
+            cor(-log10(both$p_value_F), -log10(both$p_value_LRT)),
+            median(both$p_value_F / both$p_value_LRT)))
 
 cat(if (ok) "\nAll checks passed.\n" else "\nSome checks FAILED.\n")
 if (!ok) quit(status = 1)

@@ -7,9 +7,11 @@ scores. Outcomes are behaviour (CBCL), brain imaging (MRI, DTI), SES, diet and
 online activity.
 
 It is a restructured version of the original analysis code
-(`Code_Hailey_Components.docx`). **The statistical logic is unchanged.** On
-simulated data the new code reproduces the original code's output exactly (see
-[Verification](#verification)). Concerns about the code and the science are
+(`Code_Hailey_Components.docx`). **The statistical logic is unchanged, with one
+deliberate exception:** all mixed-model tests now use the same Satterthwaite
+F-test (see [Change from the original](#change-from-the-original)). Apart from
+that, on simulated data the new code reproduces the original code's output
+exactly (see [Verification](#verification)). Concerns about the code and the science are
 listed in [Concerns](#concerns); none of them has been acted on yet.
 
 ## Pipeline
@@ -130,17 +132,41 @@ M2: M1 + b4 S_i·a_ij + b5 S_i·a_ij²
 between repeated observations of the same child. There are no random slopes
 and no family effect.
 
-**Tests:**
-- **H1** is the *t*-test of b3 in M1 (Satterthwaite df).
-- **H2** is the joint *F*-test of b4 = b5 = 0 in M2 (Satterthwaite df).
+**Tests** (all `lmerTest::contestMD`, Satterthwaite denominator df):
+- **H1** is the *F*-test of b3 = 0 in M1 (1 df; the same p-value as the
+  Satterthwaite *t*-test).
+- **H2** is the joint *F*-test of b4 = b5 = 0 in M2.
 - The incremental Nakagawa marginal R² is reported for each.
 
 **Repeated measures, a whole score set jointly.** Same model with all *K*
-scores as fixed effects. H1 is a likelihood-ratio test of M1 against M0
-(χ², *K* df).
+scores as fixed effects. H1 is the joint *F*-test that all *K* score
+coefficients are zero in M1.
 
 **Single-time outcomes (OLS).** `y_i = b0 + g'X_i [+ age at measurement] + Σ c_k S_ik + e_i`.
 H1 is the *F*-test of the nested models; for a single score, the estimate is c_1.
+
+### Change from the original
+
+The original code used three different tests for the mixed models:
+
+- a Satterthwaite *t*-test for single-score H1;
+- a Satterthwaite *F*-test (`contestMD`) for H2;
+- a likelihood-ratio χ² test, `anova(m0, m1)`, for H1 of the combined score sets.
+
+All three now use `contestMD` through one helper, `joint_f_test()`. This
+changes only the combined-set p-values, and the FDR values within those sets.
+For single-score H1, the 1-df *F*-test gives the same p-value as the *t*-test.
+
+To reproduce the original results, uncomment one line in `fit_lmm_score_set()`
+in `R/05_run_regressions.R`:
+
+```r
+# h1_p <- anova(m0, m1)[2, "Pr(>Chisq)"]
+```
+
+With that line uncommented, the toy run matches the original exactly. A
+commented line also restores the old single-score *t*-test p-value, which is
+numerically identical.
 
 **Multiple testing.** Benjamini-Hochberg FDR, applied separately within each
 score set × hypothesis.
@@ -164,7 +190,10 @@ This takes about one minute on a laptop. It does three things:
      changed, and checks that the merged and cleaned files are identical;
    - recomputes one score by hand and checks it against bigsnpr;
    - runs the original regression code and checks that every result table
-     matches the new code to 1e-10.
+     matches the new code to 1e-10. The exception is the combined-set
+     mixed-model p-values (and FDR values), which changed deliberately. For
+     those, it reports how the new F-test and the old likelihood-ratio
+     p-values compare. On the toy data the correlation of −log10 p is 1.000.
 
 All checks pass.
 
@@ -257,9 +286,10 @@ the original results can be replicated first.
 6. **ML vs REML.** Models are fitted with ML, which is needed for the
    likelihood-ratio test. Satterthwaite tests of fixed effects are usually done
    on REML fits; the differences are small at GenR sample sizes.
-7. **Mixed tests.** H1 uses a *t*-test (single score, LMM), an LRT χ² (score set,
-   LMM) or an *F*-test (OLS). All are valid, but they are not the same test, which
-   should be noted in tables that combine them.
+7. **Different tests for mixed and OLS models.** All mixed-model tests now use
+   a Satterthwaite *F*-test (see [Change from the original](#change-from-the-original)).
+   The single-time OLS models use the exact nested-model *F*-test. Both are
+   *F*-tests, but the mixed-model denominator df is approximated.
 8. **Constant covariates are dropped silently.** If a covariate is constant
    (e.g. one genotyping cohort in a subsample), models for different outcomes
    use different covariate sets.
