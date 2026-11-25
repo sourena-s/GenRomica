@@ -81,24 +81,6 @@ Required R packages: `data.table`, `R.utils` (reads `.gz`), `lme4`, `lmerTest`,
 - **Positional matching.** The ICA Z-score files have no SNP identifier.
   Row *k* belongs to the *k*-th SNP of the variant catalogue with
   `include == 1`. Step 2 stops if the row counts differ.
-- **Z-score QC plots.** For each component, step 2 writes
-  `component<i>_z_histogram.png` to `cfg$qc_plot_dir`. It shows the Z-score
-  histogram against a dashed N(0, 1) density, on a linear scale and on a log
-  scale (for the tails). It also writes `component_z_summary.csv` with n, mean,
-  SD, λ (median Z² / 0.455) and the count of |Z| > 5.45 per component.
-  - Bins have a fixed width of 0.05 (`cfg$z_hist_binwidth`), because a rule
-    that scales with n would create very many tiny bins for millions of SNPs.
-    At this width, a bin near zero holds about 20,000 SNPs per million, so the
-    histogram is smooth and any gap with the dashed curve is real.
-  - The x-axis covers the 99.99th percentile of |Z|, kept between 5 and 10;
-    SNPs beyond it are counted below the plot.
-  - 5 million SNPs take under a second.
-
-  ![Example Z-score QC plot on 5 million simulated SNPs: linear and log-scale histograms against a dashed N(0, 1) curve](docs/z_histogram_example.png)
-
-  - ICA looks for maximally *non*-Gaussian components, so heavy tails are
-    expected; they are the signal. The plot is for spotting problems such as
-    a shifted mean, a wrong scale, or truncation.
 - **GenR data.** Only GenR variables are exported in step 1. Genetic scores
   are never read from the RDS. They are computed from the genotypes in step 4,
   because their weights come from another study.
