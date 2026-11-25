@@ -664,9 +664,13 @@ Points not yet confirmed are marked **(check)**.
 #### Used in the current analysis
 
 **CBCL at f05 vs f09, f13 and f17: not comparable.**
-- In Generation R, the f05 wave (about age 6) used the preschool version,
-  CBCL/1½–5. The later waves used the school-age version, CBCL/6–18. The two
-  versions have different syndrome scales built from different items.
+- In Generation R, the f05 wave (about age 6, range 5–7; not age 5) used the
+  preschool version, CBCL/1½–5 (99 items), confirmed in published papers
+  ([stability of problem behaviour](https://pmc.ncbi.nlm.nih.gov/articles/PMC4729812),
+  [age-6 mental health](https://pmc.ncbi.nlm.nih.gov/articles/PMC4628613)). The
+  preschool form was chosen because most individuals were expected to be younger
+  than 6 at that visit. The later waves used the school-age version, CBCL/6–18.
+  The two versions have different syndrome scales built from different items.
 - Item counts are from the CBCL manuals:
 
 | Scale in the pipeline | CBCL/1½–5 (f05) | CBCL/6–18 (f09–f17) | Comparable? |
@@ -712,20 +716,37 @@ online activity at 17, income, and parental education.
 - **Autistic traits (SRS):** the same 18-item short form was used at about 6
   years and at about 13.5 years, so scores are comparable in items. The informant
   should still be checked per wave.
-- **Cognition:** SON-R nonverbal IQ at about 6 vs different subtests at about
-  13. Different tests.
-- **Executive function:** BRIEF-P (preschool version) at 4; any later BRIEF is
-  a different version.
-- **Screen time and physical activity:** parent report at 6 vs self-report at
-  13. Different informant and items.
-- **Bullying:** teacher report vs peer nomination or self-report. Different
-  informants.
+- **Cognition:** not comparable (different tests).
+  - At about 6y: Snijders-Oomen nonverbal intelligence test (SON-R).
+  - At about 13y: four WISC-V subtests (vocabulary, matrix reasoning, digit
+    span, coding), combined into an estimated full-scale IQ
+    ([PMC11391039](https://pmc.ncbi.nlm.nih.gov/articles/PMC11391039)).
+- **Executive function:** BRIEF-P (preschool version, parent report) at 4y only
+  ([executive function and ADHD](https://link.springer.com/10.1186/s13034-019-0299-7)).
+  No later BRIEF wave was found in published Generation R papers, so there is
+  nothing to compare it with.
+- **Screen time and physical activity:** different informants.
+  - At about 6y: parent questionnaire on TV viewing, computer-game use, sports
+    participation, outdoor play and active travel to school
+    ([Wijtzes thesis](https://repub.eur.nl/pub/78112/150513_Wijtzes-Anne-Irene.pdf)).
+  - At about 13y: self-report questionnaires, n = 3,258
+    ([body composition at 13](https://pure.eur.nl/en/publications/physical-activity-screen-time-and-body-composition-in-13-year-old/)).
+  - Whether the items match could not be checked from the published papers;
+    check the questionnaires.
+- **Bullying:** different informants at different ages; no adolescent wave was
+  found.
+  - About 6.6y: teacher report, n = 3,192.
+  - About 7.5y: peer nomination and self-report, n ≈ 1,100–1,300
+    ([Verlinden thesis](https://repub.eur.nl/pub/77215/141202_Verlinden-Bondaruk-Maryna.pdf)).
+  - About 8y: parent and teacher report, n = 2,602
+    ([bullying and brain](https://www.frontiersin.org/journals/psychiatry/articles/10.3389/fpsyt.2019.00696/pdf)).
 
 #### Options for the CBCL (none applied yet, to keep replicating the original)
 
-1. **Same instrument only:** use only f09–f17 for the longitudinal CBCL models
-   and analyse f05 separately. Uncomment the marked line in `config/project.R`
-   (`cfg$longitudinal <- cfg$longitudinal[!(domain == "CBCL" & wave == "f05")]`).
+1. **TODO — same instrument only:** use only f09–f17 for the longitudinal CBCL
+   models and drop f05 (analyse it separately). Uncomment line 106 in
+   `config/project.R`:
+   `cfg$longitudinal <- cfg$longitudinal[!(domain == "CBCL" & wave == "f05")]`.
 2. **Standardise within each wave before pooling.** This removes level
    differences between instruments, but also removes real change with age.
 3. **Common items only:** use only the items shared by both versions,
