@@ -151,7 +151,7 @@ with Generation R data management before adding a variable to
 **Not used yet**
 - **Autistic traits:** Social Responsiveness Scale (SRS), 18-item short form, at about 6 years and at about 13.5 years. The short form correlates 0.93–0.99 with the full 65-item SRS. *Continuous.* ([autistic traits and peers](https://pure.eur.nl/en/datasets/childrens-autistic-traits-and-peer-relationships-do-non-verbal-iq/), [short form at about 6](https://link.springer.com/10.1186/s13229-022-00507-4), [age 13.5](https://link.springer.com/10.1186/s13229-023-00578-x))
 - **Executive function:** BRIEF-P (parent report) at age 4, plus ADHD diagnoses from the DISC-YC interview in individuals who screened positive. *Continuous* and *binary.* ([executive function and ADHD, 2019](https://link.springer.com/10.1186/s13034-019-0299-7))
-- **Bullying and peer victimisation:** teacher report at about 6.6 years, and peer nomination or self-report at about 7.5 years. *Count* and *binary.* ([Verlinden et al.](https://repub.eur.nl/pub/77215/141202_Verlinden-Bondaruk-Maryna.pdf))
+- **Bullying and peer victimisation:** teacher report at about 6.6 years; peer nomination and self-report at about 7.5 years; parent and teacher report at about 8 years. *Count* and *binary.* ([Verlinden et al.](https://repub.eur.nl/pub/77215/141202_Verlinden-Bondaruk-Maryna.pdf), [bullying and brain](https://www.frontiersin.org/journals/psychiatry/articles/10.3389/fpsyt.2019.00696/pdf))
 - **Hallucinatory (psychotic-like) experiences:** self-report at about 10 years. *Ordinal.* ([Steenkamp et al., 2021](https://repub.eur.nl/pub/134983))
 
 ### Cognition and education
@@ -160,7 +160,7 @@ with Generation R data management before adding a variable to
 
 **Not used yet**
 - **Nonverbal IQ:** Snijders-Oomen nonverbal intelligence test (SON-R) at about 6 years. *Continuous.* ([PMC9527951](https://pmc.ncbi.nlm.nih.gov/articles/PMC9527951/))
-- **Cognitive subtests at about 13 years**, including matrix reasoning. *Continuous.* ([PMC11391039](https://pmc.ncbi.nlm.nih.gov/articles/PMC11391039))
+- **Cognition at about 13 years:** four WISC-V subtests (vocabulary, matrix reasoning, digit span, coding) and an estimated full-scale IQ. *Continuous.* ([PMC11391039](https://pmc.ncbi.nlm.nih.gov/articles/PMC11391039))
 - **Cito end-of-primary-school test** (language and mathematics) at about 12 years. *Continuous;* left-skewed with a ceiling effect, so a transform may be needed. ([PMC11391039](https://pmc.ncbi.nlm.nih.gov/articles/PMC11391039))
 
 ### Brain imaging
