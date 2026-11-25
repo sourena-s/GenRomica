@@ -52,6 +52,7 @@ every genotyped GenR individual receives one score per component.
 | 3 | `R/03_clean_components.R` | `component<i>_corrected.txt` | `component_<i>_QC.txt` |
 | 4 | `R/04_compute_scores.R` | GenR genotypes (bigSNP), QC'd weights | subject-level scores `csv.gz` |
 | 5 | `R/05_run_regressions.R` | step 1 + step 4 output | results tables |
+| 6 | `R/06_plot_results.R` | step 5 output | PheWAS plot and heatmaps |
 
 Every step takes a config file, and is run from this folder:
 
@@ -437,6 +438,37 @@ in `R/05_run_regressions.R`:
 With that line uncommented, the toy run matches the original exactly. A
 commented line also restores the old single-score *t*-test p-value, which is
 numerically identical.
+
+## Figures (step 6)
+
+`R/06_plot_results.R` reads `results.csv` from step 5 and writes, for each
+score set tested one score at a time, to `<results_dir>/figures/`:
+
+- `<set>_phewas.png`: −log10 p of every score × outcome test, grouped and
+  coloured by domain.
+  - Panel a shows H1. Triangles point up or down with the sign of the estimate.
+  - Panel b shows H2.
+  - The grey dashed line marks p = 0.05 and the blue dashed line the FDR 5%
+    threshold. Points passing FDR are labelled.
+- `<set>_heatmap_H1.png`: score × outcome heatmap of the standardised estimate,
+  on a diverging blue–grey–red scale.
+- `<set>_heatmap_H2.png`: score × outcome heatmap of −log10 p for the GPS × age
+  interaction.
+
+In both heatmaps, `*` marks p < 0.05 and `**` marks FDR-corrected p < 0.05.
+
+To try the figures on simulated results (20 components, all outcomes, no model
+fitting):
+
+```bash
+Rscript toy/make_toy_results.R
+```
+
+```bash
+Rscript R/06_plot_results.R config/toy_viz.R
+```
+
+Requires `ggplot2` and `ggrepel`.
 
 ## Verification
 
