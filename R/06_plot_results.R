@@ -102,7 +102,10 @@ phewas_plot <- function(d, set_name) {
   scores <- unique(d$predictor)
   scores <- scores[order(as.integer(gsub("\\D", "", scores)))]
   d[, outcome_rank := match(outcome, names(outcome_labels))]
-  d[, outcome_x := match(outcome, unique(.SD[order(domain, outcome_rank)]$outcome)), by = panel]
+  d[, outcome_x := as.numeric(match(outcome, unique(.SD[order(domain, outcome_rank)]$outcome))), by = panel]
+  # a gap of about 5% of the panel width between domains keeps domain names apart
+  d[, domain_rank := match(as.character(domain), levels(droplevels(domain))), by = panel]
+  d[, outcome_x := outcome_x + (domain_rank - 1) * 0.05 * uniqueN(outcome), by = panel]
   d[, x := outcome_x + (match(predictor, scores) - (length(scores) + 1) / 2) * 0.6 / length(scores)]
 
   # nominal and FDR thresholds (FDR: largest p with FDR-corrected p < 0.05)
@@ -110,9 +113,7 @@ phewas_plot <- function(d, set_name) {
 
   # domains are separated by thin dashed vertical lines; domain names sit above them
   bands <- d[, .(xmin = min(outcome_x) - 0.5, xmax = max(outcome_x) + 0.5), by = .(panel, domain)]
-  separators <- bands[order(panel, xmin), .(x = xmax[-.N]), by = panel]
-  # narrow domains (one outcome) alternate in height so their names do not overlap
-  bands[, label_raise := (xmax - xmin) <= 1 & seq_len(.N) %% 2 == 0, by = panel]
+  separators <- bands[order(panel, xmin), .(x = (xmax[-.N] + xmin[-1]) / 2), by = panel]
   # each panel has its own y range; domain names sit just above its highest point
   bands[d[, .(y_top = max(c(minus_log10_p, -log10(0.05))) * 1.12), by = panel], on = "panel", y_top := i.y_top]
   axis_labels <- unique(d[, .(panel, outcome, outcome_x)])
@@ -121,7 +122,7 @@ phewas_plot <- function(d, set_name) {
   ggplot(d, aes(x, minus_log10_p)) +
     geom_vline(data = separators, aes(xintercept = x), linetype = "22", colour = "#b5b4af", linewidth = 0.3) +
     geom_blank(data = bands, aes(x = xmin, y = y_top * 1.12), inherit.aes = FALSE) +
-    geom_text(data = bands, aes(x = (xmin + xmax) / 2, y = y_top * fifelse(label_raise, 1.08, 1), label = domain),
+    geom_text(data = bands, aes(x = (xmin + xmax) / 2, y = y_top, label = domain),
               inherit.aes = FALSE, size = 3, fontface = "bold", colour = ink_muted, vjust = 0) +
     geom_hline(yintercept = -log10(0.05), linetype = "22", colour = col_nominal, linewidth = 0.5) +
     geom_hline(data = thresholds[!is.na(fdr)], aes(yintercept = -log10(fdr)),
