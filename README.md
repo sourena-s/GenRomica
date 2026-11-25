@@ -150,7 +150,7 @@ with Generation R data management before adding a variable to
 
 **Not used yet**
 - **Autistic traits:** Social Responsiveness Scale at about 6 years, and the short form at about 13.5 years. *Continuous.* ([autistic traits and peers](https://pure.eur.nl/en/datasets/childrens-autistic-traits-and-peer-relationships-do-non-verbal-iq/), [age 13.5](https://link.springer.com/10.1186/s13229-023-00578-x))
-- **Executive function:** BRIEF-P (parent report) at age 4, plus ADHD diagnoses from the DISC-YC interview in children who screened positive. *Continuous* and *binary.* ([executive function and ADHD, 2019](https://link.springer.com/10.1186/s13034-019-0299-7))
+- **Executive function:** BRIEF-P (parent report) at age 4, plus ADHD diagnoses from the DISC-YC interview in individuals who screened positive. *Continuous* and *binary.* ([executive function and ADHD, 2019](https://link.springer.com/10.1186/s13034-019-0299-7))
 - **Bullying and peer victimisation:** teacher report at about 6.6 years, and peer nomination or self-report at about 7.5 years. *Count* and *binary.* ([Verlinden et al.](https://repub.eur.nl/pub/77215/141202_Verlinden-Bondaruk-Maryna.pdf))
 - **Hallucinatory (psychotic-like) experiences:** self-report at about 10 years. *Ordinal.* ([Steenkamp et al., 2021](https://repub.eur.nl/pub/134983))
 
