@@ -28,6 +28,8 @@
 #                                   factor lambda, number of |Z| > 5.45 (P < 5e-8)
 
 source("R/utils.R")
+source("R/plot_style.R")
+suppressPackageStartupMessages(library(patchwork))
 cfg <- load_config()
 
 # Reads a one-column, header-less numeric file.
@@ -51,54 +53,54 @@ plot_z_histogram <- function(z, title, path, binwidth) {
   z <- z[is.finite(z)]
   breaks <- seq(floor(min(z) / binwidth) * binwidth,
                 ceiling(max(z) / binwidth) * binwidth + binwidth / 2, by = binwidth)
-  h <- hist(z, breaks = breaks, plot = FALSE)
+  h <- hist(z, breaks = breaks, plot = FALSE)        # binning only; drawn with ggplot2 below
+  bins <- data.table(mid = h$mids, density = h$density)
   x_max <- min(10, max(5, ceiling(quantile(abs(z), 0.9999))))
   n_outside <- sum(abs(z) > x_max)
   lambda <- median(z^2) / qchisq(0.5, df = 1)
+  bins <- bins[abs(mid) <= x_max]
+  normal <- data.table(mid = seq(-x_max, x_max, length.out = 1001))[, density := dnorm(mid)]
+  one_snp <- 1 / (length(z) * binwidth)               # density of a bin holding one SNP
 
-  # Style
-  col_data   <- "#3A3F44"   # data outline / points
-  col_fill   <- "#C9CED6"   # histogram fill
-  col_normal <- "#1F5FBF"   # N(0, 1) reference, blue dashed
-  shown <- abs(h$mids) <= x_max
+  col_fill <- "#c9ced6"; col_data <- "#3a3f44"; col_normal <- "#1f5fbf"   # N(0, 1): blue dashed
+  base <- function() list(
+    geom_line(data = normal, aes(mid, density, linetype = "N(0, 1)"), colour = col_normal, linewidth = 0.8),
+    scale_linetype_manual(values = c("N(0, 1)" = "22"), name = NULL),
+    scale_x_continuous(limits = c(-x_max, x_max), expand = c(0, 0)),
+    labs(x = "Z-score"),
+    theme_figure(),
+    theme(panel.grid.major.y = element_line(colour = grid_col, linewidth = 0.3),
+          plot.subtitle = element_text(face = "bold", size = 10))
+  )
 
-  png(path, width = 10, height = 4.3, units = "in", res = 300, type = "cairo")
-  on.exit(dev.off())
-  par(mfrow = c(1, 2), mar = c(3.8, 4.6, 2, 1), oma = c(2.4, 0, 2.2, 0), las = 1,
-      mgp = c(2.5, 0.6, 0), tcl = -0.3, bty = "l", cex.axis = 0.85, cex.lab = 0.95)
+  linear <- ggplot(bins, aes(mid, density)) +
+    geom_col(width = binwidth, fill = col_fill, colour = NA) +
+    geom_step(aes(x = mid - binwidth / 2), colour = col_data, linewidth = 0.25, direction = "hv") +
+    base() +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+    labs(y = "Density", subtitle = "a   Linear scale") +
+    theme(legend.position = c(0.85, 0.9))
 
-  # (a) Linear scale: histogram drawn as a filled step outline
-  x_step <- rep(h$breaks[c(shown, FALSE) | c(FALSE, shown)], each = 2)
-  y_step <- c(0, rep(h$density[shown], each = 2), 0)
-  plot(NA, xlim = c(-x_max, x_max), ylim = c(0, max(h$density[shown], dnorm(0)) * 1.05),
-       xlab = "Z-score", ylab = "Density", xaxs = "i", yaxs = "i")
-  polygon(x_step, y_step, col = col_fill, border = col_data, lwd = 0.6)
-  curve(dnorm(x), from = -x_max, to = x_max, n = 1001, lty = 2, lwd = 2, col = col_normal, add = TRUE)
-  legend("topleft", legend = c("Z-scores", "N(0, 1)"), inset = c(0.02, 0),
-         fill = c(col_fill, NA), border = c(col_data, NA), lty = c(NA, 2), lwd = c(NA, 2),
-         col = c(NA, col_normal), merge = TRUE, bty = "n", cex = 0.8)
-  mtext("a  Linear scale", side = 3, adj = 0, line = 0.5, font = 2)
+  powers <- seq(ceiling(log10(one_snp / 2)), 0)
+  log_scale <- ggplot(bins[density > 0], aes(mid, density)) +
+    geom_point(colour = col_data, size = 0.5) +
+    base() +
+    scale_y_log10(limits = c(one_snp / 2, 1), breaks = 10^powers,
+                  labels = function(b) parse(text = paste0("10^", log10(b)))) +
+    labs(y = "Density (log scale)", subtitle = "b   Log scale (tails)") +
+    theme(legend.position = "none")
 
-  # (b) Log scale: one point per non-empty bin; floor = density of one SNP in a bin
-  nonzero <- shown & h$density > 0
-  one_snp <- 1 / (length(z) * binwidth)
-  y_lim <- c(one_snp / 2, max(h$density, dnorm(0)) * 1.5)
-  plot(h$mids[nonzero], h$density[nonzero], log = "y", pch = 16, cex = 0.35, col = col_data,
-       xlim = c(-x_max, x_max), ylim = y_lim, xaxs = "i", yaxt = "n",
-       xlab = "Z-score", ylab = "Density (log scale)")
-  powers <- seq(ceiling(log10(y_lim[1])), floor(log10(y_lim[2])))
-  axis(2, at = 10^powers, labels = parse(text = paste0("10^", powers)))
-  curve(dnorm(x), from = -x_max, to = x_max, n = 1001, lty = 2, lwd = 2, col = col_normal, add = TRUE)
-  mtext("b  Log scale (tails)", side = 3, adj = 0, line = 0.5, font = 2)
-
-  # Title and summary statistics
-  mtext(title, outer = TRUE, line = 0.6, font = 2, cex = 1.15)
-  stats <- sprintf("n = %s   |   mean = %.3f   |   SD = %.3f   |   \u03bb = %.3f   |   bin width = %g",
+  stats <- sprintf("n = %s   |   mean = %.3f   |   SD = %.3f   |   λ = %.3f   |   bin width = %g",
                    format(length(z), big.mark = ","), round(mean(z), 3) + 0,  # + 0 avoids "-0.000"
                    sd(z), lambda, binwidth)
   if (n_outside) stats <- paste0(stats, sprintf("   |   %s SNPs with |Z| > %g not shown",
                                                 format(n_outside, big.mark = ","), x_max))
-  mtext(stats, side = 1, outer = TRUE, line = 0.8, cex = 0.8, col = "grey25")
+
+  figure <- (linear | log_scale) +
+    plot_annotation(title = title, caption = stats,
+                    theme = theme_figure() + theme(plot.caption = element_text(hjust = 0.5, colour = "grey25")))
+  suppressWarnings(ggsave(path, figure, width = 10, height = 4.3, dpi = 300, device = "png",
+                          type = "cairo", bg = "white"))
 
   data.table(n = length(z), mean = mean(z), sd = sd(z), lambda = lambda,
              n_abs_z_gt_5.45 = sum(abs(z) > 5.45))

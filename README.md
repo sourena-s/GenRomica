@@ -68,7 +68,8 @@ Rscript R/05_run_regressions.R config/project.R
 - `R/utils.R` holds the shared helpers.
 
 Required R packages: `data.table`, `R.utils` (reads `.gz`), `lme4`, `lmerTest`,
-`performance`, `bigsnpr`, `dplyr` (used by `bigsnpr::snp_match` for strand flips).
+`performance`, `bigsnpr`, `dplyr` (used by `bigsnpr::snp_match` for strand flips),
+and for figures `ggplot2`, `ggrepel` and `patchwork`. All figures are drawn with ggplot2.
 
 ### Data conventions
 
@@ -471,10 +472,10 @@ the same code (`fit_lmm_one_score()` in `R/models.R`); no new model is defined.
 
 One panel: outcome against age.
 
-- Grey points: every observation at its age (a scatter per wave).
+- Points: every observation at its age (a scatter per wave).
 - Boxplots: outcome per wave (median, IQR, whiskers 1.5 IQR), at the wave's
   median age. Wave names are shown along the top.
-- Curves on top: M2 fixed-effect predictions for the GPS at −1 SD, the mean
+- Dashed curves on top: M2 fixed-effect predictions for the GPS at −1 SD, the mean
   and +1 SD, with covariates at their sample means and 95% CI bands.
 - **Pairs drawn:** those with FDR-corrected p < 0.05 for H1 or H2. If none pass,
   the `cfg$max_trajectory_plots` (default 6) pairs with the smallest p are drawn.
@@ -498,7 +499,7 @@ To see the trajectory figure on simulated data with a known GPS × age effect:
 Rscript toy/make_toy_trajectory_demo.R
 ```
 
-Requires `ggplot2` and `ggrepel`.
+Requires `ggplot2`, `ggrepel` and `patchwork`.
 
 ## Verification
 
