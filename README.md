@@ -242,22 +242,6 @@ About 30 exposures, from pregnancy and childhood, at the home address. *Continuo
 - **gPC1–4:** *continuous.*
 - **Age at each measurement:** *continuous.*
 
-### Not confirmed in published Generation R papers
-
-No Generation R source was found for these. They were suggested from general
-knowledge of similar cohorts only, so check them in the GenR data dictionary
-before use:
-
-- **Youth Self Report (YSR) at 13 and 17 years.** The only related Generation R
-  source found uses parent-reported questionnaires
-  ([sleep and mental health](https://pmc.ncbi.nlm.nih.gov/articles/PMC8076148)),
-  and self-report work in young individuals uses the Berkeley Puppet Interview
-  ([Ringoot thesis](https://repub.eur.nl/pub/78219/150603_Ringoot-Ank-Paulien-Young-children-in-the-general-population-as-informants-of-their-problem-behavior-BEWERKT.pdf)).
-- **Pubertal development** (Pubertal Development Scale or Tanner stage). Not
-  found in any Generation R paper.
-- **Suicidal ideation and self-harm in adolescence.** Not found in any
-  Generation R paper.
-
 ## Quality control and filtering
 
 Everything below happens before any model is fitted, in pipeline order.
