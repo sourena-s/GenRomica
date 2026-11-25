@@ -531,7 +531,7 @@ numerically identical.
 bash toy/run_toy.sh
 ```
 
-This takes about one minute on a laptop. It does three things:
+It does three things:
 
 1. It simulates toy data (`toy/make_toy_data.R`): 500 GenR individuals, 480
    genotyped individuals and 3,000 SNPs. The data include SNPs that QC must remove,
