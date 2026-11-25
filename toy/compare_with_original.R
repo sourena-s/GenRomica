@@ -2,7 +2,8 @@
 # Checks the new pipeline against the original code on the toy data
 # =============================================================================
 # 1. Runs the transcribed original merge + cleaning code and compares its
-#    output files with those of steps 2-3.
+#    output files with those of steps 2-3. The original reads p-values from
+#    files; the pipeline computes them from Z, so P agrees to ~1e-15.
 # 2. Recomputes score C1 by hand (plain R allele matching) and compares it with
 #    the bigsnpr score of step 4.
 # 3. Builds the original single RDS (GenR data + step-4 scores), runs the
@@ -25,10 +26,10 @@ Sys.setenv(TOY_DIR = toy, TOY_N_COMPONENTS = "4")
 system2("Rscript", "reference/original_merge_and_clean.R", stdout = FALSE)
 
 for (i in 1:4) {
-  check(sprintf("merged component %d identical", i),
+  check(sprintf("merged component %d matches", i),
         all.equal(fread(sprintf("%s/reference_out/merged/component%d.txt", toy, i)),
                   fread(sprintf("%s/pipeline_out/merged/component%d.txt", toy, i))))
-  check(sprintf("cleaned component %d identical", i),
+  check(sprintf("cleaned component %d matches", i),
         all.equal(fread(sprintf("%s/reference_out/clean/component_%d_QC.txt", toy, i)),
                   fread(sprintf("%s/pipeline_out/clean/component_%d_QC.txt", toy, i))))
 }

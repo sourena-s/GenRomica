@@ -23,8 +23,9 @@ cfg$genr_renames <- c(sum_wid_f05 = "sum_wit_f05")
 cfg$n_components      <- 20
 cfg$variant_catalogue <- "/gpfs/home4/hdavis/genomica/variant_catalogue.txt"
 cfg$zscore_pattern    <- "/gpfs/home4/hdavis/genomica/melodic_oIc_%d.txt"
-cfg$pvalue_pattern    <- "/gpfs/home4/hdavis/genomica/p_val_component%d.txt"
 cfg$merged_pattern    <- "/scratch-shared/hdavis/component%d.txt"
+cfg$qc_plot_dir       <- "/scratch-shared/hdavis/component_qc"   # Z-score histograms
+cfg$z_hist_binwidth   <- 0.05                                    # histogram bin width (Z units)
 
 
 # ---- Step 3: QC of the component summary statistics -------------------------

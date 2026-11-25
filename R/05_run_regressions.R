@@ -167,7 +167,8 @@ safe_fit <- function(expr, label) {
 #
 #   y_ij  outcome, z-scored over all observations (all waves pooled)
 #   a_ij  age - 17 (cfg$reference_age), in years; a_ij^2 its square
-#   S_i   genetic score, z-scored over children (one value per child)
+#   S_i   genetic score: a GPS (GenomICA polygenic score) or PGS, z-scored over
+#         children (one value per child)
 #   X_i   sex, genotyping cohort, gPC1-4 (gPCs z-scored over children);
 #         covariates that are constant in the sample are dropped
 #   u_i   random intercept of child i, u_i ~ N(0, s_u^2)

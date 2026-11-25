@@ -13,8 +13,8 @@ cfg$genr_csv_dir <- file.path(toy, "genr_csv")
 cfg$n_components      <- 4
 cfg$variant_catalogue <- file.path(toy, "ica", "variant_catalogue.txt")
 cfg$zscore_pattern    <- file.path(toy, "ica", "melodic_oIc_%d.txt")
-cfg$pvalue_pattern    <- file.path(toy, "ica", "p_val_component%d.txt")
 cfg$merged_pattern    <- file.path(toy, "pipeline_out", "merged", "component%d.txt")
+cfg$qc_plot_dir       <- file.path(toy, "pipeline_out", "component_qc")
 
 cfg$qc_input_pattern  <- cfg$merged_pattern   # no "corrected" step in the toy
 cfg$qc_output_pattern <- file.path(toy, "pipeline_out", "clean", "component_%d_QC.txt")

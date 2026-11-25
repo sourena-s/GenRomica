@@ -7,7 +7,8 @@
 #                            naming, missing values, stale score columns
 #   genotypes/toy.{bed,bim,fam,rds,bk}  480 genotyped children (some not in
 #                            GenR, some GenR children not genotyped), 3000 SNPs
-#   ica/                     variant catalogue + per-component Z and p-value files,
+#   ica/                     variant catalogue + per-component Z-score files (and
+#                            p-value files, used only by the original code),
 #                            with SNPs that should be removed by QC or flipped by
 #                            snp_match (swapped alleles, opposite strand)
 #   sumstats_other/          QC'd summary statistics for toy UK_PCS and PGS scores
@@ -92,11 +93,17 @@ catalogue[, include := rbinom(.N, 1, 0.95)]                    # 5% not used in 
 fwrite(catalogue, file.path(out, "ica", "variant_catalogue.txt"), col.names = FALSE, sep = " ")
 
 n_included <- sum(catalogue$include == 1)
+# Z-scores: mostly N(0, 1) with heavier tails, a few extreme values (|Z| = 40,
+# whose P underflows to 0 and is removed by QC) and a few missing values.
+# The p-value files are only read by the original code in reference/; the
+# pipeline computes P from Z.
 for (i in seq_len(n_components)) {
   zs <- rnorm(n_included)
-  zs[sample(n_included, 3)] <- NA                               # removed by QC
+  tail_snps <- sample(n_included, 100)
+  zs[tail_snps] <- 2.5 * rt(100, df = 3)
+  zs[sample(n_included, 2)] <- c(-40, 40)
+  zs[sample(n_included, 3)] <- NA
   ps <- 2 * pnorm(-abs(zs))
-  ps[sample(which(!is.na(zs)), 2)] <- 0                         # removed by QC (P > 0)
   fwrite(data.table(zs), file.path(out, "ica", sprintf("melodic_oIc_%d.txt", i)), col.names = FALSE, na = "NA")
   fwrite(data.table(ps), file.path(out, "ica", sprintf("p_val_component%d.txt", i)), col.names = FALSE, na = "NA")
 }
