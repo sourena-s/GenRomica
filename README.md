@@ -501,34 +501,47 @@ does, as far as it affects GenRomica (points to confirm are marked **(check)**):
 
 What this means for GenRomica:
 
-1. **Same variant catalogue.** Step 2 matches component rows to catalogue rows
-   by position (`include == 1`). The catalogue used here must be the mask file
-   of the MELODIC run that produced the components. In the genomica repository,
-   `h5_mask_concat.py` uses the HapMap3 mask, but `stage_6_melodic_to_text.sh`
-   points to an older merged mask. **(check)**
-2. **Which run is which score set.** There are two decompositions ("manual" and
-   "r2psy" traits). Record which one gives `C1–C20` and which gives
-   `UK_PCS_1–20`. **(check)**
-3. **`melodic_oIC` values may not be Z-scores.** In FSL MELODIC,
+1. **Two masks, two score sets.** Both GPS sets probably come from the
+   "manual" trait set, decomposed twice with different variant masks:
+   - **HapMap3:** common variants, about 1.3 million; used in `h5_mask_concat.py`.
+   - **Common and rare variants:** about 5 million. `stage_6_melodic_to_text.sh`
+     writes this list as `<catalogue>.5million`.
+
+   Record which mask gives `C1–C20` and which gives `UK_PCS_1–20`. **(check)**
+2. **One catalogue per mask.** Step 2 matches component rows to catalogue rows
+   by position (`include == 1`). Each score set therefore needs the catalogue of
+   its own mask. `config/project.R` has a single `cfg$variant_catalogue` and
+   builds only the `C` set. To compute the second set, run steps 2–3 again with
+   the other catalogue and its component files, write the output to separate
+   files, and add those files to `cfg$score_weights`. The pipeline stops if the
+   row counts do not match, so a wrong catalogue is caught.
+3. **Rare variants in the 5-million mask.** For rare variants, GenR imputation
+   quality is lower and fewer of them will match in `snp_match`. Allele
+   frequencies also differ in a multi-ethnic cohort, and their weights come from
+   European-ancestry GWAS. No MAF or imputation-quality filter is applied in
+   GenRomica (see [Not applied](#not-applied)). Compare the number of matched
+   variants per score in `*_snp_matching.csv`, and consider an INFO or MAF
+   threshold for the 5-million set.
+4. **`melodic_oIC` values may not be Z-scores.** In FSL MELODIC,
    `melodic_IC` holds the component maps converted to Z-statistics, and
    `melodic_oIC` holds the original (unconverted) maps. Step 2 treats the
    values as Z and computes P = 2Φ(−|Z|). The QC summary (`component_z_summary.csv`:
    SD and λ) shows whether the values are on a Z scale. The P values are only
    meaningful if they are, and they affect QC filter 1 (P > 0). **(check)**
-4. **Component sign is arbitrary.** An ICA component and its negative are the
+5. **Component sign is arbitrary.** An ICA component and its negative are the
    same solution. The direction of a GPS association must be read together with
    the sign of each trait's loading in `melodic_mix` (the trait-by-component
    matrix). Use the components and loadings from the same MELODIC run.
-5. **Component order.** MELODIC orders components by explained variance, and a
+6. **Component order.** MELODIC orders components by explained variance, and a
    rerun can change order and sign. Keep the exact run used for scoring.
-6. **Effect allele.** Pan-UKB variant IDs are `chr_pos_ref_alt`, and `beta`
+7. **Effect allele.** Pan-UKB variant IDs are `chr_pos_ref_alt`, and `beta`
    refers to the alt allele. The catalogue's A2 (effect allele) must be the alt
    allele. **(check)**
-7. **Genome build.** Pan-UKB positions are GRCh37, so the GenR genotypes must
+8. **Genome build.** Pan-UKB positions are GRCh37, so the GenR genotypes must
    also be GRCh37 for step 4 to match on position (concern A5).
-8. **Ancestry.** The weights come from European-ancestry GWAS, which supports
+9. **Ancestry.** The weights come from European-ancestry GWAS, which supports
    concern B5 (GenR is multi-ethnic).
-9. **Missing set to zero.** Variants missing for some traits were given Z = 0
+10. **Missing set to zero.** Variants missing for some traits were given Z = 0
    in the ICA input, which shrinks their component weights towards zero.
 
 ## Concerns
