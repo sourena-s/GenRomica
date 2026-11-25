@@ -1,24 +1,24 @@
-# GenRomica: GenomICA polygenic scores and child development in Generation R
+# GenomICA polygenic scores (GPS) and childhood behavioral outcomes in the Generation R cohort
 
-GenRomica uses GenomICA polygenic scoring (GPS) to estimate children's genetic
-predisposition to a broad range of environmental, lifestyle and psychiatric
-traits. It then tests whether these predispositions predict child outcomes in
-the Generation R Study (GenR; N = **[N]** children, up to four study waves, ages
-**[x]**–**[y]** years).
+This project uses data-driven, multivariate genetic dispositions to a large range
+of heritable traits (up to 691) to estimate a broad range of environmental,
+lifestyle and psychiatric traits in children, and to identify gene–environment
+and gene–behaviour correlations. Specifically, it tests whether these genetic
+predispositions predict the following variables in the Generation R Study
+(GenR; N = **[N]** children, up to four study waves, ages **[x]**–**[y]** years):
 
-GenomICA components are extracted in a data-driven way, by independent component
-analysis (ICA), from 691 genome-wide association studies (GWAS) of UK Biobank
-traits from the Pan-UK Biobank project
-([Karczewski et al., 2025](https://doi.org/10.1038/s41588-025-02335-7)). Each
-component is a population-wide set of genome-wide variant weights.
-
-Every genotyped GenR child receives one score per component. These scores are
-then related to the child's:
 - behavioural and emotional problems (Child Behavior Checklist, CBCL);
 - brain structure and white-matter microstructure (MRI, DTI);
 - family socioeconomic status (SES);
 - diet;
 - online activity.
+
+The genetic dispositions are GenomICA components. They are extracted in a
+data-driven way, by independent component analysis (ICA), from up to 691
+genome-wide association studies (GWAS) of UK Biobank traits from the Pan-UK
+Biobank project ([Karczewski et al., 2025](https://doi.org/10.1038/s41588-025-02335-7)).
+Each component is a population-wide set of genome-wide variant weights, and
+every genotyped GenR child receives one score per component.
 
 It is a restructured version of the original analysis code
 (`Code_Hailey_Components.docx`). **The statistical logic is unchanged, with one
