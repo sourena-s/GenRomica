@@ -188,8 +188,10 @@ Fitted in R (`R/05_run_regressions.R`; the formula is built with `reformulate()`
 
 ```math
 \begin{aligned}
-&\mathcal{M}_0:\ \texttt{lmer(outcome }\sim\texttt{ age\_c + age2 + sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\texttt{(1 | idc)}}\texttt{, REML = FALSE)} \\[2pt]&\mathcal{M}_1:\ \texttt{lmer(outcome }\sim\texttt{ age\_c + age2 + score + sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\texttt{(1 | idc)}}\texttt{, REML = FALSE)} \\[2pt]&\mathcal{M}_2:\ \texttt{lmer(outcome }\sim\texttt{ age\_c + age2 + score + score:age\_c + score:age2} \\
-&\qquad\quad \texttt{+ sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\texttt{(1 | idc)}}\texttt{, REML = FALSE)}
+&\mathcal{M}_0:\ \mathtt{lmer(outcome }\sim\mathtt{ age\_c + age2} \\
+&\qquad\quad \mathtt{+ sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\mathtt{(1 | idc)}}\mathtt{, REML = FALSE)} \\[2pt]&\mathcal{M}_1:\ \mathtt{lmer(outcome }\sim\mathtt{ age\_c + age2 + score} \\
+&\qquad\quad \mathtt{+ sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\mathtt{(1 | idc)}}\mathtt{, REML = FALSE)} \\[2pt]&\mathcal{M}_2:\ \mathtt{lmer(outcome }\sim\mathtt{ age\_c + age2 + score + score:age\_c + score:age2} \\
+&\qquad\quad \mathtt{+ sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\mathtt{(1 | idc)}}\mathtt{, REML = FALSE)}
 \end{aligned}
 ```
 
@@ -251,8 +253,8 @@ Fitted in R (`R/05_run_regressions.R`; the formula is built with `reformulate()`
 
 ```math
 \begin{aligned}
-&\texttt{lmer(outcome }\sim\texttt{ age\_c + age2 + C1 + C2 + ... + C20} \\
-&\qquad \texttt{+ sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\texttt{(1 | idc)}}\texttt{, REML = FALSE)}
+&\mathtt{lmer(outcome }\sim\mathtt{ age\_c + age2 + C1 + C2 + ... + C20} \\
+&\qquad \mathtt{+ sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\mathtt{(1 | idc)}}\mathtt{, REML = FALSE)}
 \end{aligned}
 ```
 
@@ -282,7 +284,7 @@ Fitted in R with ordinary least squares (`R/05_run_regressions.R`; the formula i
 
 ```math
 \begin{aligned}
-&\texttt{lm(outcome }\sim\texttt{ [age] + sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + score)}\qquad\text{(no random effect)}
+&\mathtt{lm(outcome }\sim\mathtt{ [age] + sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + score)}\qquad\text{(no random effect)}
 \end{aligned}
 ```
 
