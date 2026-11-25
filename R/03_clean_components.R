@@ -39,6 +39,8 @@ for (i in seq_len(cfg$n_components)) {
   stats <- stats[CHR %in% as.character(1:22)]
   n["autosomes"] <- nrow(stats)
 
+  # TODO: this also removes indels (alleles longer than one base). Check whether
+  # indels can be aligned with the GenR genotypes and kept.
   stats <- stats[A1 %in% nucleotides & A2 %in% nucleotides & A1 != A2]
   n["ACGT alleles"] <- nrow(stats)
 

@@ -159,7 +159,9 @@ SNPs are removed, in this order, when they have:
 
 1. a missing chromosome or position, a non-finite Z-score, or a p-value outside (0, 1]. This also removes |Z| > ~37.5, where P underflows to 0;
 2. a chromosome other than 1–22;
-3. an allele other than A, C, G or T, or two identical alleles;
+3. an allele other than A, C, G or T, or two identical alleles.
+   **TODO:** this also removes indels. Check whether indels can be aligned with
+   the GenR genotypes and kept;
 4. strand-ambiguous (palindromic) alleles, A/T or C/G;
 5. a position (CHR:BP) that occurs more than once. All copies are removed.
 
