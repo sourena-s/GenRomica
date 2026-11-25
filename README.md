@@ -1,10 +1,24 @@
-# GenRomica: genetic ICA component scores and child outcomes in Generation R
+# GenRomica: GenomICA polygenic scores and child development in Generation R
 
-This pipeline tests whether genetic scores are associated with child
-outcomes in the Generation R Study (GenR). The scores are ICA components of
-genome-wide SNP effects, derived in an independent study, plus other polygenic
-scores. Outcomes are behaviour (CBCL), brain imaging (MRI, DTI), SES, diet and
-online activity.
+GenRomica uses GenomICA polygenic scoring (GPS) to estimate children's genetic
+predisposition to a broad range of environmental, lifestyle and psychiatric
+traits. It then tests whether these predispositions predict child outcomes in
+the Generation R Study (GenR; N = **[N]** children, up to four study waves, ages
+**[x]**–**[y]** years).
+
+GenomICA components are extracted in a data-driven way, by independent component
+analysis (ICA), from 691 genome-wide association studies (GWAS) of UK Biobank
+traits from the Pan-UK Biobank project
+([Karczewski et al., 2025](https://doi.org/10.1038/s41588-025-02335-7)). Each
+component is a population-wide set of genome-wide variant weights.
+
+Every genotyped GenR child receives one score per component. These scores are
+then related to the child's:
+- behavioural and emotional problems (Child Behavior Checklist, CBCL);
+- brain structure and white-matter microstructure (MRI, DTI);
+- family socioeconomic status (SES);
+- diet;
+- online activity.
 
 It is a restructured version of the original analysis code
 (`Code_Hailey_Components.docx`). **The statistical logic is unchanged, with one
