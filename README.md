@@ -133,6 +133,72 @@ strand-ambiguous SNPs. Because step 3 already removes palindromic SNPs, the
 rerun can currently only drop those few flipped SNPs; see concern B2. The
 choice for each score is logged in `*_snp_matching.csv`.
 
+## Quality control and filtering
+
+Everything below happens before any model is fitted, in pipeline order.
+
+### GenR phenotype data (step 1)
+
+- **Required variables:** every variable listed in the config must exist; otherwise the pipeline stops.
+- **One row per child:** duplicated `idc` values stop the pipeline.
+- **Numeric types:** outcomes, ages and gPCs must be numeric; a factor or text column stops the pipeline.
+- **Naming fix:** `sum_wid_f05` is renamed to `sum_wit_f05`, the CBCL withdrawn scale at wave f05.
+- **Exported variables:** only the variables used by the pipeline are exported. Score columns in the RDS are ignored.
+- **No row filtering:** all children are kept at this step.
+
+### GenomICA component Z-scores (step 2)
+
+- **Included SNPs:** only SNPs flagged `include == 1` in the variant catalogue are kept.
+- **Input format:** each Z-score file must be one numeric column, without a header.
+- **Row counts:** the number of Z-scores must equal the number of included SNPs, because rows are matched by position.
+- **p-values:** P is computed from Z as $`2\,\Phi(-|Z|)`$.
+
+### Component summary statistics (step 3)
+
+SNPs are removed, in this order, when they have:
+
+1. a missing chromosome or position, a non-finite Z-score, or a p-value outside (0, 1]. This also removes |Z| > ~37.5, where P underflows to 0;
+2. a chromosome other than 1–22;
+3. an allele other than A, C, G or T, or two identical alleles;
+4. strand-ambiguous (palindromic) alleles, A/T or C/G;
+5. a position (CHR:BP) that occurs more than once. All copies are removed.
+
+The number of SNPs removed at each filter is printed for every component.
+
+### Genotypes and scoring (step 4)
+
+- **Missing genotype calls:** imputed with the mean dosage (`snp_fastImputeSimple`, method `mean2`).
+- **Allele matching:** with `bigsnpr::snp_match()`, joining on chromosome and position.
+  - A SNP is flipped in sign when the effect allele is the genotype's other allele.
+  - Strand flips are allowed only if at least 10 SNPs need one (`cfg$min_strand_flips`); otherwise matching is redone without them.
+  - SNPs duplicated after matching are removed.
+  - The pipeline stops if fewer than 20% of SNPs match (`snp_match` default).
+- **Logging:** the number of SNPs used, sign-flipped and strand-flipped is logged per score.
+- **Children:** genotyped children not in GenR are dropped. GenR children without genotypes get missing scores.
+
+### Model data (step 5)
+
+- **Repeated measures:** an observation is used only if both the outcome and the age at that wave are present.
+- **Complete cases, per model:** children or observations with any missing value in the outcome, age, sex, genotyping cohort, gPC1–4 or the score(s) are excluded.
+- **Too little variation:** a model is skipped if, after exclusions,
+  - the outcome has fewer than 2 distinct values;
+  - any score has fewer than 2 distinct values;
+  - or, for mixed models, age has fewer than 3 distinct values.
+- **Constant covariates:** covariates that are constant in the analysis sample are dropped from that model.
+- **Standardisation:** outcomes, scores and gPCs are z-transformed after the exclusions, within each model's sample.
+- **Problem fits:** singular fits are flagged (`singular`) and their Nakagawa $`R^2`$ is set to NA. Errors are logged in `failed_models.csv` and warnings in `model_warnings.csv`.
+
+### Not applied
+
+These are left to upstream processing, or listed as open points under [Concerns](#concerns):
+
+- **SNP-level filters:** no minor-allele-frequency, imputation-quality (INFO), call-rate or Hardy–Weinberg filtering of SNPs. Genotype QC is assumed done upstream.
+- **Sample-level filters:**
+  - no exclusion of related children (concern C5);
+  - no restriction by genetic ancestry (concern B5);
+  - no sample call-rate or sex-check filtering.
+- **Outcomes:** no outlier removal or transformation (concern C4).
+
 ## The statistical models
 
 The comments in `R/05_run_regressions.R` describe the same models next to the
