@@ -5,7 +5,9 @@
 #   variant_catalogue.txt    no header, 7 columns:
 #                              CHR, BP, A1 (other allele), A2 (effect allele),
 #                              SNP (rsID), CHR:BP:A, include flag (1 = used in ICA)
-#   melodic_oIc_<i>.txt      one column, no header: Z-score of each SNP on component i
+#   melodic_oIc_<i>.txt      one column, no header: weight of each SNP on component i,
+#                            from MELODIC melodic_oIC. Treated as a Z-score here, but
+#                            not Z-transformed (open issue: README, concern B6)
 #
 # The Z-score files have no SNP identifier: row k belongs to the k-th included
 # SNP of the catalogue. This script checks that the row counts match before
