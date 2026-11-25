@@ -549,9 +549,11 @@ the original results can be replicated first.
    > **Does it change significance?** Not for any hypothesis we test:
    > - **H1** ($`\beta_3`$ in M1): M1 has no score × age terms, so $`\beta_3`$
    >   and its p-value do not depend on *c*.
-   > - **H2** (joint test $`\beta_4 = \beta_5 = 0`$ in M2): changing *c* maps
-   >   $`(\beta_4, \beta_5)`$ to $`(\beta_4 - 2d\,\beta_5,\ \beta_5)`$, an
-   >   invertible transform, so the joint *F*-test is unchanged.
+   > - **H2** (joint test $`\beta_4 = \beta_5 = 0`$ in M2): moving the centre
+   >   *d* years earlier (age $`a = a' + d`$) maps $`(\beta_4, \beta_5)`$ to
+   >   $`(\beta_4 + 2d\,\beta_5,\ \beta_5)`$. This is an invertible transform,
+   >   so $`\beta_4 = \beta_5 = 0`$ holds in one parametrisation exactly when it
+   >   holds in the other, and the joint *F*-test is unchanged.
    > - **What does change:** the meaning, SE and p-value of single M2
    >   coefficients. These are $`\beta_3`$ (the effect at age *c*) and
    >   $`\beta_4`$ (the linear GPS × age slope at age *c*). In the results,
