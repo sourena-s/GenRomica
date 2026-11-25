@@ -105,9 +105,9 @@ phewas_plot <- function(d, set_name) {
   # nominal and FDR thresholds (FDR: largest p with FDR-corrected p < 0.05)
   thresholds <- d[, .(fdr = if (any(p_fdr < 0.05)) max(p_value[p_fdr < 0.05]) else NA_real_), by = panel]
 
-  # alternating background bands mark the domains; domain names sit above them
+  # domains are separated by thin dashed vertical lines; domain names sit above them
   bands <- d[, .(xmin = min(outcome_x) - 0.5, xmax = max(outcome_x) + 0.5), by = .(panel, domain)]
-  bands[, shade := seq_len(.N) %% 2 == 1, by = panel]
+  separators <- bands[order(panel, xmin), .(x = xmax[-.N]), by = panel]
   # narrow domains (one outcome) alternate in height so their names do not overlap
   bands[, label_raise := (xmax - xmin) <= 1 & seq_len(.N) %% 2 == 0, by = panel]
   # each panel has its own y range; domain names sit just above its highest point
@@ -116,8 +116,7 @@ phewas_plot <- function(d, set_name) {
   hits <- d[p_fdr < 0.05]
 
   ggplot(d, aes(x, minus_log10_p)) +
-    geom_rect(data = bands[shade == TRUE], aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf),
-              inherit.aes = FALSE, fill = "#f4f3f0") +
+    geom_vline(data = separators, aes(xintercept = x), linetype = "22", colour = "#b5b4af", linewidth = 0.3) +
     geom_blank(data = bands, aes(x = xmin, y = y_top * 1.12), inherit.aes = FALSE) +
     geom_text(data = bands, aes(x = (xmin + xmax) / 2, y = y_top * fifelse(label_raise, 1.08, 1), label = domain),
               inherit.aes = FALSE, size = 3, fontface = "bold", colour = ink_muted, vjust = 0) +
