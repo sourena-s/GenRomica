@@ -99,6 +99,15 @@ varying_covariates <- function(d) {
 }
 
 # Standardise the genetic PCs over children
+#
+# DANGER! This line is a GUESS. Line 134 of the original regression script
+# (inside scale_gpcs()) was not visible in the screenshots we received. We
+# assumed it is  d[, (v) := z_by_id(get(v), idc)] , which standardises each gPC
+# over children, matching how the scores are standardised. If the real line is
+# plain  z(get(v))  (standardised over all rows), only the gPC rows of
+# covariate_results.csv from the mixed models would change. Rescaling a
+# covariate does not change any score estimate, p-value or R2.
+# Check against the original script and update if it differs.
 standardise_gpcs <- function(d) {
   for (v in gpcs) d[, (v) := z_by_id(get(v), idc)]
   d
