@@ -1,4 +1,4 @@
-# GenomICA polygenic scores (GPS) and childhood behavioral outcomes in the Generation R cohort
+# GenomICA polygenic scores (GPS) of the environment and childhood behavioral outcomes in the Generation R cohort
 
 This project uses data-driven, multivariate genetic dispositions to a large range
 of heritable traits (up to 691) to estimate a broad range of environmental,
