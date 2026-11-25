@@ -172,6 +172,7 @@ with Generation R data management before adding a variable to
 **Not used yet**
 - **Subcortical and regional volumes:** e.g. hippocampus, already analysed in Generation R. *Continuous.* ([urban environment and brain](https://pure.eur.nl/en/publications/urban-environment-in-early-life-and-brain-morphology-in-preadoles/))
 - **Total brain volume and other global measures** from the same scans. *Continuous.* ([White et al., 2018](https://pmc.ncbi.nlm.nih.gov/articles/PMC5803295))
+- **Resting-state functional connectivity (fMRI):** at ages 6–10 (n ≈ 774 in one analysis), and longitudinally at ages 10 and 14. *Continuous.* ([dynamic connectivity, ages 10 and 14](https://www.doi.org/10.3389/FNSYS.2021.724805), [subcortical connectivity, ages 6–10](https://core.ac.uk/download/160828747.pdf), [Generation R and ABCD connectivity](https://pmc.ncbi.nlm.nih.gov/articles/PMC11332032))
 
 ### Body composition and physical health
 
@@ -180,6 +181,7 @@ with Generation R data management before adding a variable to
 **Not used yet**
 - **Body composition:** total and visceral fat at about 13 years, and body-fat indicators at about 6 years. *Continuous.* ([body composition at 13](https://pure.eur.nl/en/publications/physical-activity-screen-time-and-body-composition-in-13-year-old/), [Wijtzes thesis](https://repub.eur.nl/pub/78112/150513_Wijtzes-Anne-Irene.pdf))
 - **Lung function:** spirometry at about 10 years. *Continuous.* ([Abellan et al., 2024](https://repositori.upf.edu/items/75d98624-ed04-4297-a6ca-e67dbb27bad5/full))
+- **Blood pressure and cardiometabolic markers:** blood pressure at ages 6 and 9–10, a cardiometabolic risk score at age 8, and lipids and insulin at age 6. *Continuous.* ([blood-pressure prediction](https://repub.eur.nl/pub/112552/Repub_112552_O-A.pdf), [diet quality and cardiometabolic health](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8854322/), [infant fat mass and risk factors](https://pmc.ncbi.nlm.nih.gov/articles/PMC5426532))
 - **Oral and dental health:** collected at ages 3, 6, 9, 13 and 17. *Count* and *binary.* ([oral health overview](https://link.springer.com/article/10.1007/s00784-023-05076-1))
 
 ### Lifestyle
@@ -192,6 +194,7 @@ with Generation R data management before adding a variable to
 - **Screen time at about 6 years:** TV and computer-game use (parent report). *Continuous* (hours/day). ([lifestyle clustering](https://pmc.ncbi.nlm.nih.gov/articles/PMC7352876))
 - **Screen time at about 13 years:** self-report. *Continuous* (hours/day). ([body composition at 13](https://pure.eur.nl/en/publications/physical-activity-screen-time-and-body-composition-in-13-year-old/))
 - **Physical activity:** sports participation, outdoor play and active travel to school at about 6 years (parent report); self-report at about 13 years. *Continuous* and *binary.* ([Wijtzes thesis](https://repub.eur.nl/pub/78112/150513_Wijtzes-Anne-Irene.pdf))
+- **Accelerometer-measured physical activity:** only found at age 2 (uniaxial ActiGraph, n = 347). *Continuous* (time in sedentary and active behaviour). No accelerometer data were found for later ages. ([correlates of physical activity in 2-year-olds](https://research.tilburguniversity.edu/en/publications/correlates-of-physical-activity-in-2-year-old-toddlers-the-genera/))
 - **Diet components:** snacks and sugar-sweetened drinks at about 6 years, and the individual food groups of the age-8 food-frequency questionnaire. *Continuous* (portions/day). ([diet quality at 8](https://repub.eur.nl/pub/121454/121454_Chapter_2_4-Diet_quality_in_childhood.pdf))
 - **Substance use:** alcohol use (self-report, adolescence) and age at first alcohol or tobacco use (at about 14 years). *Binary* and *continuous.* ([alcohol and brain](https://dspace.library.uu.nl/handle/1874/443370), [brain and initiation](https://pure.eur.nl/en/publications/examining-associations-between-brain-morphology-in-late-childhood/))
 - **Sleep:** sleep problems in early childhood; sleep and circadian rhythm in the age-9 protocol. *Continuous* and *ordinal.* ([sleep and autistic traits](https://capmh.biomedcentral.com/track/pdf/10.1186/s13034-021-00421-2), [age-9 protocol](https://onderzoekmetmensen.nl/en/node/41521/pdf))
@@ -239,17 +242,21 @@ About 30 exposures, from pregnancy and childhood, at the home address. *Continuo
 - **gPC1–4:** *continuous.*
 - **Age at each measurement:** *continuous.*
 
-### Not yet confirmed in published papers
+### Not confirmed in published Generation R papers
 
-These are commonly assumed to be collected in Generation R but were not
-confirmed here; check the data dictionary:
+No Generation R source was found for these. They were suggested from general
+knowledge of similar cohorts only, so check them in the GenR data dictionary
+before use:
 
-- Youth Self Report (YSR) at 13 and 17 years;
-- pubertal development (Pubertal Development Scale or Tanner stage);
-- suicidal ideation and self-harm in adolescence;
-- accelerometer-measured physical activity;
-- resting-state and task fMRI measures;
-- blood pressure and cardiometabolic markers.
+- **Youth Self Report (YSR) at 13 and 17 years.** The only related Generation R
+  source found uses parent-reported questionnaires
+  ([sleep and mental health](https://pmc.ncbi.nlm.nih.gov/articles/PMC8076148)),
+  and self-report work in young individuals uses the Berkeley Puppet Interview
+  ([Ringoot thesis](https://repub.eur.nl/pub/78219/150603_Ringoot-Ank-Paulien-Young-children-in-the-general-population-as-informants-of-their-problem-behavior-BEWERKT.pdf)).
+- **Pubertal development** (Pubertal Development Scale or Tanner stage). Not
+  found in any Generation R paper.
+- **Suicidal ideation and self-harm in adolescence.** Not found in any
+  Generation R paper.
 
 ## Quality control and filtering
 
