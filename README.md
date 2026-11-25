@@ -455,7 +455,7 @@ score set tested one score at a time, to `<results_dir>/figures/`:
   - The red dashed line marks p = 0.05 for a single test. The purple dashed
     line marks the FDR 5% threshold across all scores and outcomes of the
     panel. Points passing FDR are labelled.
-  - Domains appear in the order CBCL, SES, Diet, Online, MRI, DTI, on a white
+  - Domains appear in the order CBCL, SES, Diet, Online, T1w MRI, dMRI, on a white
     background separated by thin dashed grey vertical lines.
 - `<set>_heatmap_H1.png`: score × outcome heatmap of the standardised estimate,
   on a diverging blue–grey–red scale.

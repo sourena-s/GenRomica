@@ -36,8 +36,11 @@ dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
 # ---- Labels, order and colours -----------------------------------------------
 
 domain_order <- c("CBCL", "SES", "Diet", "Online", "MRI", "DTI")
-domain_colours <- c(CBCL = "#2a78d6", MRI = "#eb6834", DTI = "#1baf7a",    # fixed order of the
-                    SES = "#eda100", Diet = "#e87ba4", Online = "#008300")  # reference palette
+# Domain names shown in the figures (data keep the short names)
+domain_display <- c(CBCL = "CBCL", SES = "SES", Diet = "Diet", Online = "Online",
+                    MRI = "T1w MRI", DTI = "dMRI")
+domain_colours <- c("CBCL" = "#2a78d6", "T1w MRI" = "#eb6834", "dMRI" = "#1baf7a",  # colours follow the
+                    "SES" = "#eda100", "Diet" = "#e87ba4", "Online" = "#008300")    # domain, not its position
 outcome_labels <- c(
   anx = "Anxious/depressed", som = "Somatic complaints", wit = "Withdrawn",
   sop = "Social problems", tho = "Thought problems", att = "Attention problems",
@@ -85,7 +88,7 @@ stars <- function(p, p_fdr) fifelse(p_fdr < 0.05, "**", fifelse(p < 0.05, "*", "
 
 phewas_plot <- function(d, set_name) {
   d <- copy(d)
-  d[, domain := factor(domain, levels = intersect(domain_order, unique(domain)))]
+  d[, domain := factor(domain_display[domain], levels = domain_display[intersect(domain_order, unique(domain))])]
   d[, minus_log10_p := -log10(p_value)]
   d[, direction := fcase(hypothesis == "H2", "Age interaction (H2)",
                          estimate >= 0, "Positive estimate",
@@ -165,7 +168,7 @@ phewas_plot <- function(d, set_name) {
 
 heatmap_plot <- function(d, hyp, set_name) {
   d <- copy(d[hypothesis == hyp])
-  d[, domain := factor(domain, levels = intersect(domain_order, unique(domain)))]
+  d[, domain := factor(domain_display[domain], levels = domain_display[intersect(domain_order, unique(domain))])]
   d[, outcome_label := factor(label_outcome(outcome),
                               levels = unique(label_outcome(d[order(domain, match(outcome, names(outcome_labels)))]$outcome)))]
   scores <- unique(d$predictor)
