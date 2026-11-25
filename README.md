@@ -448,8 +448,11 @@ score set tested one score at a time, to `<results_dir>/figures/`:
   coloured by domain.
   - Panel a shows H1. Triangles point up or down with the sign of the estimate.
   - Panel b shows H2.
-  - The grey dashed line marks p = 0.05 and the blue dashed line the FDR 5%
-    threshold. Points passing FDR are labelled.
+  - Each outcome has one point per component (20 for C1–C20).
+  - The red dashed line marks p = 0.05 for a single test. The purple dashed
+    line marks the FDR 5% threshold across all scores and outcomes of the
+    panel. Points passing FDR are labelled.
+  - Domains appear in the order CBCL, SES, Diet, Online, MRI, DTI.
 - `<set>_heatmap_H1.png`: score × outcome heatmap of the standardised estimate,
   on a diverging blue–grey–red scale.
 - `<set>_heatmap_H2.png`: score × outcome heatmap of −log10 p for the GPS × age
