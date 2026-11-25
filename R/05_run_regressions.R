@@ -1,5 +1,5 @@
 # =============================================================================
-# Step 5 - Association of genetic scores with child outcomes in GenR
+# Step 5 - Association of genetic scores with individual outcomes in GenR
 # =============================================================================
 # Each genetic score (ICA component scores, polygenic scores) is tested against
 #   (a) repeated measures (CBCL, MRI, DTI) with linear mixed models, and
@@ -55,18 +55,18 @@ for (v in cfg$categorical_covariates) {
   genr[, (v) := if (length(lv)) droplevels(factor(get(v), levels = lv)) else factor(get(v))]
 }
 
-# ---- Genetic scores (children without genotype data get NA) -------------------
+# ---- Genetic scores (individuals without genotype data get NA) -------------------
 for (path in cfg$score_files) add_columns_by_idc(genr, read_table(path), path)
 require_columns(genr, all_scores, "The genetic score file(s)",
                 load_command = sprintf('d <- data.table::fread("%s")', cfg$score_files[1]))
 
-message(sprintf("Loaded %d children, %d scores", nrow(genr), length(all_scores)))
+message(sprintf("Loaded %d individuals, %d scores", nrow(genr), length(all_scores)))
 
 
 # =============================================================================
 # 2. Repeated measures in long format
 # =============================================================================
-# One row per child x wave x outcome, keeping observations with both an outcome
+# One row per individual x wave x outcome, keeping observations with both an outcome
 # value and an age. Columns: idc, covariates, age, outcome, domain,
 # outcome_name, wave.
 
@@ -98,12 +98,12 @@ varying_covariates <- function(d) {
   covars[sapply(covars, function(v) uniqueN(d[[v]]) > 1)]
 }
 
-# Standardise the genetic PCs over children
+# Standardise the genetic PCs over individuals
 #
 # DANGER! This line is a GUESS. Line 134 of the original regression script
 # (inside scale_gpcs()) was not visible in the screenshots we received. We
 # assumed it is  d[, (v) := z_by_id(get(v), idc)] , which standardises each gPC
-# over children, matching how the scores are standardised. If the real line is
+# over individuals, matching how the scores are standardised. If the real line is
 # plain  z(get(v))  (standardised over all rows), only the gPC rows of
 # covariate_results.csv from the mixed models would change. Rescaling a
 # covariate does not change any score estimate, p-value or R2.
@@ -167,7 +167,7 @@ safe_fit <- function(expr, label) {
 # =============================================================================
 # 4. Linear mixed model: repeated measures, one score at a time
 # =============================================================================
-# Data: one row per observation j (wave) of child i.
+# Data: one row per observation j (wave) of individual i.
 #
 #   M0: y_ij = b0 + b1 a_ij + b2 a_ij^2 + g'X_i                              + u_i + e_ij
 #   M1: y_ij = b0 + b1 a_ij + b2 a_ij^2 + g'X_i + b3 S_i                     + u_i + e_ij
@@ -177,10 +177,10 @@ safe_fit <- function(expr, label) {
 #   y_ij  outcome, z-scored over all observations (all waves pooled)
 #   a_ij  age - 17 (cfg$reference_age), in years; a_ij^2 its square
 #   S_i   genetic score: a GPS (GenomICA polygenic score) or PGS, z-scored over
-#         children (one value per child)
-#   X_i   sex, genotyping cohort, gPC1-4 (gPCs z-scored over children);
+#         individuals (one value per individual)
+#   X_i   sex, genotyping cohort, gPC1-4 (gPCs z-scored over individuals);
 #         covariates that are constant in the sample are dropped
-#   u_i   random intercept of child i, u_i ~ N(0, s_u^2)
+#   u_i   random intercept of individual i, u_i ~ N(0, s_u^2)
 #   e_ij  residual, e_ij ~ N(0, s_e^2)
 #
 # Fixed effects
@@ -192,10 +192,10 @@ safe_fit <- function(expr, label) {
 #   - S (M1, M2): the genetic score being tested
 #   - S x age, S x age^2 (M2): lets the score effect change with age
 # Random effects
-#   - a child-specific intercept u_i. Repeated observations of the same child
-#     are correlated; u_i absorbs stable between-child differences so the
+#   - an individual-specific intercept u_i. Repeated observations of the same individual
+#     are correlated; u_i absorbs stable between-individual differences so the
 #     standard errors account for this non-independence. There are no random
-#     slopes: apart from the score terms, all children follow the same trajectory.
+#     slopes: apart from the score terms, all individuals follow the same trajectory.
 # Estimation: maximum likelihood (REML = FALSE).
 #
 # Tests
@@ -298,7 +298,7 @@ fit_lmm_one_score <- function(data, score_name) {
 # 5. Linear mixed model: repeated measures, all scores of a set jointly
 # =============================================================================
 # Same data preparation, covariates and random intercept as section 4, with
-# all K scores of the set entered together (each z-scored over children):
+# all K scores of the set entered together (each z-scored over individuals):
 #
 #   M0: y_ij = b0 + b1 a_ij + b2 a_ij^2 + g'X_i                      + u_i + e_ij
 #   M1: y_ij = b0 + b1 a_ij + b2 a_ij^2 + g'X_i + sum_k c_k S_ik     + u_i + e_ij
@@ -355,7 +355,7 @@ fit_lmm_score_set <- function(data, scores, label) {
 # =============================================================================
 # 6. Linear regression: outcomes measured once
 # =============================================================================
-# One row per child i:
+# One row per individual i:
 #
 #   M0: y_i = b0 + g'X_i                  + e_i
 #   M1: y_i = b0 + g'X_i + sum_k c_k S_ik + e_i,   e_i ~ N(0, s^2)
@@ -366,7 +366,7 @@ fit_lmm_score_set <- function(data, scores, label) {
 #         measurement when the outcome has one (cfg$single_outcomes$age_var);
 #         constant covariates are dropped
 #
-# Fitted with ordinary least squares. No random effects: one observation per child.
+# Fitted with ordinary least squares. No random effects: one observation per individual.
 # H1: all c_k = 0, F-test of M1 vs M0. For a single score, the estimate is c_1
 #     (SD of outcome per SD of score). Incremental R2 = R2(M1) - R2(M0).
 

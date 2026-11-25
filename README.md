@@ -2,10 +2,10 @@
 
 This project uses data-driven, multivariate genetic dispositions to a large range
 of heritable traits (up to 691) to estimate a broad range of environmental,
-lifestyle and psychiatric traits in children, and to identify gene–environment
+lifestyle and psychiatric traits in individuals, and to identify gene–environment
 and gene–behaviour correlations. Specifically, it tests whether these genetic
 predispositions predict the following variables in the Generation R Study
-(GenR; N = **[N]** children, up to four study waves, ages **[x]**–**[y]** years):
+(GenR; N = **[N]** individuals, up to four study waves, ages **[x]**–**[y]** years):
 
 - behavioural and emotional problems (Child Behavior Checklist, CBCL);
 - brain structure and white-matter microstructure (MRI, DTI);
@@ -23,7 +23,7 @@ FastICA ([Hyvärinen, 1999](https://doi.org/10.1109/72.761722)), applied to up t
 691 genome-wide association studies (GWAS) of UK Biobank traits from the Pan-UK
 Biobank project ([Karczewski et al., 2025](https://doi.org/10.1038/s41588-025-02335-7)).
 Each component is a population-wide set of genome-wide variant weights, and
-every genotyped GenR child receives one score per component.
+every genotyped GenR individual receives one score per component.
 
 ### References
 
@@ -140,11 +140,11 @@ Everything below happens before any model is fitted, in pipeline order.
 ### GenR phenotype data (step 1)
 
 - **Required variables:** every variable listed in the config must exist; otherwise the pipeline stops.
-- **One row per child:** duplicated `idc` values stop the pipeline.
+- **One row per individual:** duplicated `idc` values stop the pipeline.
 - **Numeric types:** outcomes, ages and gPCs must be numeric; a factor or text column stops the pipeline.
 - **Naming fix:** `sum_wid_f05` is renamed to `sum_wit_f05`, the CBCL withdrawn scale at wave f05.
 - **Exported variables:** only the variables used by the pipeline are exported. Score columns in the RDS are ignored.
-- **No row filtering:** all children are kept at this step.
+- **No row filtering:** all individuals are kept at this step.
 
 ### GenomICA component Z-scores (step 2)
 
@@ -174,12 +174,12 @@ The number of SNPs removed at each filter is printed for every component.
   - SNPs duplicated after matching are removed.
   - The pipeline stops if fewer than 20% of SNPs match (`snp_match` default).
 - **Logging:** the number of SNPs used, sign-flipped and strand-flipped is logged per score.
-- **Children:** genotyped children not in GenR are dropped. GenR children without genotypes get missing scores.
+- **Individuals:** genotyped individuals not in GenR are dropped. GenR individuals without genotypes get missing scores.
 
 ### Model data (step 5)
 
 - **Repeated measures:** an observation is used only if both the outcome and the age at that wave are present.
-- **Complete cases, per model:** children or observations with any missing value in the outcome, age, sex, genotyping cohort, gPC1–4 or the score(s) are excluded.
+- **Complete cases, per model:** individuals or observations with any missing value in the outcome, age, sex, genotyping cohort, gPC1–4 or the score(s) are excluded.
 - **Too little variation:** a model is skipped if, after exclusions,
   - the outcome has fewer than 2 distinct values;
   - any score has fewer than 2 distinct values;
@@ -194,7 +194,7 @@ These are left to upstream processing, or listed as open points under [Concerns]
 
 - **SNP-level filters:** no minor-allele-frequency, imputation-quality (INFO), call-rate or Hardy–Weinberg filtering of SNPs. Genotype QC is assumed done upstream.
 - **Sample-level filters:**
-  - no exclusion of related children (concern C5);
+  - no exclusion of related individuals (concern C5);
   - no restriction by genetic ancestry (concern B5);
   - no sample call-rate or sex-check filtering.
 - **Outcomes:** no outlier removal or transformation (concern C4).
@@ -206,8 +206,8 @@ code.
 
 **Terminology.** Subject-level scores built from the ICA component weights are
 called **GPS (GenomICA Polygenic Scores)**. For SNP $`k`$, let $`Z_k`$ be its
-component Z-score and $`G_{ik} \in [0, 2]`$ the number of effect alleles child
-$`i`$ carries. The GPS of child $`i`$ is
+component Z-score and $`G_{ik} \in [0, 2]`$ the number of effect alleles individual
+$`i`$ carries. The GPS of individual $`i`$ is
 
 ```math
 \mathrm{GPS}_i = \sum_{k} G_{ik}\, Z_k .
@@ -219,7 +219,7 @@ conventional polygenic scores. All are analysed in the same way.
 ### 1. Repeated measures, one score at a time — equation [1]
 
 Linear mixed model, fitted by maximum likelihood. For measurement $`j`$
-(wave f05, f09, f13 or f17) of child $`i`$:
+(wave f05, f09, f13 or f17) of individual $`i`$:
 
 Full model, with every term labelled:
 
@@ -235,7 +235,7 @@ Full model, with every term labelled:
 &+ \underbrace{\gamma_{\mathrm{sex}}\,\mathrm{sex}_i}_{\text{sex}}
  + \underbrace{\boldsymbol{\gamma}_{\mathrm{coh}}^{\top}\mathbf{c}_i}_{\text{genotyping cohort}}
  + \underbrace{\textstyle\sum_{p=1}^{4}\gamma_{p}\,\mathrm{gPC}_{p,i}}_{\text{ancestry: gPC 1 to 4}}
- + {\color{red}\underbrace{u_i}_{\text{child random intercept}}}
+ + {\color{red}\underbrace{u_i}_{\text{individual random intercept}}}
  + \underbrace{\varepsilon_{ij}}_{\text{residual}}
 \end{aligned}
 \qquad\qquad \textbf{[1]}
@@ -268,12 +268,12 @@ Fitted in R (`R/05_run_regressions.R`; the formula is built with `reformulate()`
 
 | Symbol | Meaning |
 |---|---|
-| $`y_{ij}`$ | **Outcome** of child $`i`$ at wave $`j`$. Examples: the CBCL anxious/depressed sum score (`sum_anx_<wave>`), total grey-matter volume (`TotalGrayVol_<wave>`), mean fractional anisotropy (`mean_FA_genr_<wave>`). It is z-transformed once, over all observations in the model's analysis sample, so across children *and* waves together. |
+| $`y_{ij}`$ | **Outcome** of individual $`i`$ at wave $`j`$. Examples: the CBCL anxious/depressed sum score (`sum_anx_<wave>`), total grey-matter volume (`TotalGrayVol_<wave>`), mean fractional anisotropy (`mean_FA_genr_<wave>`). It is z-transformed once, over all observations in the model's analysis sample, so across individuals *and* waves together. |
 | $`a_{ij}`$ | **Age** at that measurement minus 17 years. $`a_{ij}^2`$ is its square; together they give a quadratic developmental trajectory centred at age 17. |
-| $`S_i`$ | **Score** of child $`i`$ (a GPS or PGS). It is constant over waves and z-transformed across children: the mean and SD are taken over individuals, each counted once however many measurements they have. |
-| $`\mathrm{sex}_i`$, $`\mathbf{c}_i`$, $`\mathrm{gPC}_{p,i}`$ | **Covariates:** sex (indicator); genotyping cohort (genotyping batch/array, as dummy variables $`\mathbf{c}_i`$); gPC1–4, the first four principal components of the genome-wide genotypes, which capture genetic ancestry (z-transformed across children). A covariate that is constant in the analysis sample is dropped. |
-| $`u_i`$ | **Random intercept** of child $`i`$: how far that child's average outcome level lies from the population intercept $`\beta_0`$, the same at every wave. It models the correlation between repeated measurements of the same child. |
-| $`\varepsilon_{ij}`$ | Residual error of measurement $`j`$ of child $`i`$. |
+| $`S_i`$ | **Score** of individual $`i`$ (a GPS or PGS). It is constant over waves and z-transformed across individuals: the mean and SD are taken over individuals, each counted once however many measurements they have. |
+| $`\mathrm{sex}_i`$, $`\mathbf{c}_i`$, $`\mathrm{gPC}_{p,i}`$ | **Covariates:** sex (indicator); genotyping cohort (genotyping batch/array, as dummy variables $`\mathbf{c}_i`$); gPC1–4, the first four principal components of the genome-wide genotypes, which capture genetic ancestry (z-transformed across individuals). A covariate that is constant in the analysis sample is dropped. |
+| $`u_i`$ | **Random intercept** of individual $`i`$: how far that individual's average outcome level lies from the population intercept $`\beta_0`$, the same at every wave. It models the correlation between repeated measurements of the same individual. |
+| $`\varepsilon_{ij}`$ | Residual error of measurement $`j`$ of individual $`i`$. |
 
 **Why these terms.**
 - **Fixed effects:**
@@ -281,7 +281,7 @@ Fitted in R (`R/05_run_regressions.R`; the formula is built with `reformulate()`
   - $`\gamma_{\mathrm{sex}}`$, $`\boldsymbol{\gamma}_{\mathrm{coh}}`$ and $`\gamma_1,\dots,\gamma_4`$ adjust for sex differences, genotyping batch effects and population stratification (ancestry differences correlated with both score and outcome).
   - $`\beta_3`$ is the score association.
   - $`\beta_4, \beta_5`$ let that association change with age.
-- **Random effects:** only $`u_i`$. There are no random slopes, so all children share one trajectory shape apart from the score terms. There is no family-level effect (see concern C5).
+- **Random effects:** only $`u_i`$. There are no random slopes, so all individuals share one trajectory shape apart from the score terms. There is no family-level effect (see concern C5).
 - **Maximum likelihood** is used rather than REML, so that models with different fixed effects can be compared.
 
 **Hypotheses** (all tested with `lmerTest::contestMD`, Satterthwaite denominator df):
@@ -299,7 +299,7 @@ Fitted in R (`R/05_run_regressions.R`; the formula is built with `reformulate()`
 ### 2. Repeated measures, a whole score set jointly — equation [2]
 
 All $`K`$ scores of a set (e.g. the 20 component GPS) enter one model, each
-z-transformed across children:
+z-transformed across individuals:
 
 ```math
 \begin{aligned}
@@ -311,7 +311,7 @@ z-transformed across children:
 &+ \underbrace{\gamma_{\mathrm{sex}}\,\mathrm{sex}_i}_{\text{sex}}
  + \underbrace{\boldsymbol{\gamma}_{\mathrm{coh}}^{\top}\mathbf{c}_i}_{\text{genotyping cohort}}
  + \underbrace{\textstyle\sum_{p=1}^{4}\gamma_{p}\,\mathrm{gPC}_{p,i}}_{\text{ancestry: gPC 1 to 4}}
- + {\color{red}\underbrace{u_i}_{\text{child random intercept}}}
+ + {\color{red}\underbrace{u_i}_{\text{individual random intercept}}}
  + \underbrace{\varepsilon_{ij}}_{\text{residual}}
 \end{aligned}
 \qquad\qquad \textbf{[2]}
@@ -332,7 +332,7 @@ Fitted in R (`R/05_run_regressions.R`; the formula is built with `reformulate()`
 
 ### 3. Outcomes measured once (ordinary least squares) — equation [3]
 
-For SES, diet and online use (one row per child):
+For SES, diet and online use (one row per individual):
 
 ```math
 \begin{aligned}
@@ -413,8 +413,8 @@ bash toy/run_toy.sh
 
 This takes about one minute on a laptop. It does three things:
 
-1. It simulates toy data (`toy/make_toy_data.R`): 500 GenR children, 480
-   genotyped children and 3,000 SNPs. The data include SNPs that QC must remove,
+1. It simulates toy data (`toy/make_toy_data.R`): 500 GenR individuals, 480
+   genotyped individuals and 3,000 SNPs. The data include SNPs that QC must remove,
    SNPs with swapped alleles or reported on the opposite strand, missing
    genotype calls, the `sum_wid_f05` naming quirk, stale score columns in the
    RDS, and a non-alphabetical factor reference level.
@@ -514,9 +514,9 @@ the original results can be replicated first.
    p-values, but estimates are in pooled-SD units.
 4. **Skewed outcomes.** CBCL sums are counts with many zeros, and the models
    assume normal residuals. Consider a transform, or a count model, for robustness.
-5. **Siblings and twins.** GenR includes related children. The random intercept
-   is per child only, so related children are treated as independent. Keep one
-   child per family or add a family random effect.
+5. **Siblings and twins.** GenR includes related individuals. The random intercept
+   is per individual only, so related individuals are treated as independent. Keep one
+   individual per family or add a family random effect.
 6. **ML vs REML.** Models are fitted with ML, which is needed for the
    likelihood-ratio test. Satterthwaite tests of fixed effects are usually done
    on REML fits; the differences are small at GenR sample sizes.
@@ -535,9 +535,9 @@ the original results can be replicated first.
 11. **Incremental R².** Nakagawa R² is NA for singular fits, and differences
     can be negative. For OLS, the raw (not adjusted) R² difference is reported.
 12. **SES outcomes are parental.** Maternal and paternal education and household
-    income are parent characteristics. An association with the child's score
+    income are parent characteristics. An association with the individual's score
     reflects shared parental genetics (genetic nurture, or confounding),
-    not an effect on the child.
+    not an effect on the individual.
 13. **Ordinal outcomes treated as continuous** (`INCOME5`, `EDUCM`, `EDUCP`).
     Step 1 stops if they are stored as factors, so their coding has to be
     chosen explicitly.

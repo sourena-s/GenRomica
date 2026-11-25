@@ -2,11 +2,11 @@
 # Toy data for testing the pipeline on a laptop
 # =============================================================================
 # Creates, in toy/data/:
-#   genr/genr_full_file.rds  simulated GenR data (500 children), including the
+#   genr/genr_full_file.rds  simulated GenR data (500 individuals), including the
 #                            problems the pipeline must handle: sum_wid_f05
 #                            naming, missing values, stale score columns
-#   genotypes/toy.{bed,bim,fam,rds,bk}  480 genotyped children (some not in
-#                            GenR, some GenR children not genotyped), 3000 SNPs
+#   genotypes/toy.{bed,bim,fam,rds,bk}  480 genotyped individuals (some not in
+#                            GenR, some GenR individuals not genotyped), 3000 SNPs
 #   ica/                     variant catalogue + per-component Z-score files (and
 #                            p-value files, used only by the original code),
 #                            with SNPs that should be removed by QC or flipped by
@@ -31,7 +31,7 @@ n_geno <- 480
 m_snps <- 3000
 
 genr_ids <- sample(100001:100500)                               # GenR idc, shuffled order
-geno_ids <- c(sample(genr_ids, 460), 900001:900020)             # 40 GenR children not genotyped, 20 extra
+geno_ids <- c(sample(genr_ids, 460), 900001:900020)             # 40 GenR individuals not genotyped, 20 extra
 
 non_palindromic <- list(c("A","C"), c("A","G"), c("T","C"), c("T","G"), c("C","A"), c("G","A"), c("C","T"), c("G","T"))
 alleles <- do.call(rbind, sample(non_palindromic, m_snps, replace = TRUE))
@@ -135,7 +135,7 @@ genr <- data.table(
   gPC1 = rnorm(n, 0, 0.01), gPC2 = rnorm(n, 0, 0.01), gPC3 = rnorm(n, 0, 0.01), gPC4 = rnorm(n, 0, 0.01)
 )
 
-child_level <- rnorm(n)                                          # stable child effect
+child_level <- rnorm(n)                                          # stable individual effect
 for (w in names(waves)) {
   genr[, (paste0("age_cbcl_", w))      := with_missing(waves[[w]] + rnorm(n, 0, 0.4), 0.05)]
   genr[, (paste0("age_child_mri_", w)) := with_missing(waves[[w]] + 0.8 + rnorm(n, 0, 0.4), 0.05)]

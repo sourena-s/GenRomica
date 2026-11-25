@@ -1,11 +1,11 @@
 # =============================================================================
 # Step 4 - Subject-level genetic scores from GenR genotypes (bigsnpr)
 # =============================================================================
-# For every row of cfg$score_weights, the score of child n is
+# For every row of cfg$score_weights, the score of individual n is
 #
 #     score_n = sum over SNPs k of  dosage_nk * w_k
 #
-# where dosage_nk is the number of effect alleles child n carries at SNP k and
+# where dosage_nk is the number of effect alleles individual n carries at SNP k and
 # w_k is the weight from the summary statistics (BETA, here a Z-score). The
 # same computation gives ICA component scores and polygenic scores.
 #
@@ -42,7 +42,7 @@ genotype_map <- setNames(genotypes$map[c("chromosome", "marker.ID", "physical.po
 require_columns(genotypes$fam, cfg$genotype_id_column, "The genotype .fam table",
                 load_command = sprintf('d <- bigsnpr::snp_attach("%s")$fam', cfg$genotype_rds))
 idc <- genotypes$fam[[cfg$genotype_id_column]]
-message(sprintf("Genotypes: %d children x %d SNPs", nrow(G), ncol(G)))
+message(sprintf("Genotypes: %d individuals x %d SNPs", nrow(G), ncol(G)))
 
 # Missing genotype calls are replaced by twice the allele frequency (mean
 # dosage), so a missing call adds the average contribution to the score.
@@ -93,4 +93,4 @@ for (k in seq_len(nrow(cfg$score_weights))) {
 dir.create(dirname(cfg$scores_file), recursive = TRUE, showWarnings = FALSE)
 fwrite(scores, cfg$scores_file)
 fwrite(rbindlist(matching), sub("(\\.csv)?(\\.gz)?$", "_snp_matching.csv", cfg$scores_file))
-message("Wrote ", ncol(scores) - 1, " scores for ", nrow(scores), " children to ", cfg$scores_file)
+message("Wrote ", ncol(scores) - 1, " scores for ", nrow(scores), " individuals to ", cfg$scores_file)

@@ -57,7 +57,7 @@ require_columns <- function(data, columns, data_name, load_command) {
 
 stop_if_duplicated_ids <- function(data, data_name) {
   n_dup <- sum(duplicated(data$idc))
-  if (n_dup) stop(data_name, " has ", n_dup, " duplicated idc value(s); expected one row per child.", call. = FALSE)
+  if (n_dup) stop(data_name, " has ", n_dup, " duplicated idc value(s); expected one row per individual.", call. = FALSE)
 }
 
 
@@ -97,8 +97,8 @@ z <- function(x) {
   (x - mean(x)) / s
 }
 
-# z-score of a child-level variable in long data (several rows per child):
-# mean and SD are computed over children (first row per idc), so children with
+# z-score of an individual-level variable in long data (several rows per individual):
+# mean and SD are computed over individuals (first row per idc), so individuals with
 # more observations do not get more weight.
 z_by_id <- function(x, id) {
   first_row <- !duplicated(id)

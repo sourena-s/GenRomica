@@ -21,7 +21,7 @@ cfg <- load_config()
 
 require_files(cfg$genr_rds)
 genr <- as.data.table(readRDS(cfg$genr_rds))
-message("Read ", nrow(genr), " children x ", ncol(genr), " variables from ", cfg$genr_rds)
+message("Read ", nrow(genr), " individuals x ", ncol(genr), " variables from ", cfg$genr_rds)
 
 # ---- Fix known naming inconsistencies --------------------------------------
 for (old in names(cfg$genr_renames)) {
