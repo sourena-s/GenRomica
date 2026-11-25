@@ -476,6 +476,61 @@ estimate, p-value or R². Check both parts against the real script.
 **Precision.** Step 1 writes decimal numbers with 17 significant digits.
 `fwrite`'s default of 15 digits changed the Nakagawa R² at the 1e-6 level.
 
+## Link to the genomica pipeline
+
+The GenomICA components used here are produced by
+[sourena-s/genomica](https://github.com/sourena-s/genomica). What that code
+does, as far as it affects GenRomica (points to confirm are marked **(check)**):
+
+- **Input GWAS.** Pan-UK Biobank summary statistics, European-ancestry (EUR)
+  columns only (`panukb_dl.sh`). For each trait, Z = `beta_EUR / se_EUR`.
+  Variants flagged `low_confidence_EUR` are set to missing.
+- **Trait selection.** Traits are selected by genetic correlation with
+  psychiatric traits (|r_g| > 0.5, `stage_1_filter_gwas.sh`), plus a manually
+  curated list.
+- **Variant set.** A mask in `clumps.sorted.mask.in.var.catalogue` (column 2 = 1)
+  selects the variants that enter the ICA (`h5_mask_concat.py`). The current
+  script uses a HapMap3 mask; earlier runs used LD-clumped masks.
+- **Missing values.** Missing Z-scores, including low-confidence variants, are
+  set to 0 before the ICA (`np.nan_to_num`).
+- **ICA.** FSL MELODIC with 20 components, `pow3` non-linearity, variance
+  normalisation (`--vn`) and no mixture modelling (`--no_mm`)
+  (`stage_2_melodic.sh`). It runs on two trait sets: "manual" and "r2psy".
+- **Export.** `stage_6_melodic_to_text.sh` writes each component of
+  `melodic_oIC.nii.gz` as one value per masked variant, in catalogue order.
+
+What this means for GenRomica:
+
+1. **Same variant catalogue.** Step 2 matches component rows to catalogue rows
+   by position (`include == 1`). The catalogue used here must be the mask file
+   of the MELODIC run that produced the components. In the genomica repository,
+   `h5_mask_concat.py` uses the HapMap3 mask, but `stage_6_melodic_to_text.sh`
+   points to an older merged mask. **(check)**
+2. **Which run is which score set.** There are two decompositions ("manual" and
+   "r2psy" traits). Record which one gives `C1–C20` and which gives
+   `UK_PCS_1–20`. **(check)**
+3. **`melodic_oIC` values may not be Z-scores.** In FSL MELODIC,
+   `melodic_IC` holds the component maps converted to Z-statistics, and
+   `melodic_oIC` holds the original (unconverted) maps. Step 2 treats the
+   values as Z and computes P = 2Φ(−|Z|). The QC summary (`component_z_summary.csv`:
+   SD and λ) shows whether the values are on a Z scale. The P values are only
+   meaningful if they are, and they affect QC filter 1 (P > 0). **(check)**
+4. **Component sign is arbitrary.** An ICA component and its negative are the
+   same solution. The direction of a GPS association must be read together with
+   the sign of each trait's loading in `melodic_mix` (the trait-by-component
+   matrix). Use the components and loadings from the same MELODIC run.
+5. **Component order.** MELODIC orders components by explained variance, and a
+   rerun can change order and sign. Keep the exact run used for scoring.
+6. **Effect allele.** Pan-UKB variant IDs are `chr_pos_ref_alt`, and `beta`
+   refers to the alt allele. The catalogue's A2 (effect allele) must be the alt
+   allele. **(check)**
+7. **Genome build.** Pan-UKB positions are GRCh37, so the GenR genotypes must
+   also be GRCh37 for step 4 to match on position (concern A5).
+8. **Ancestry.** The weights come from European-ancestry GWAS, which supports
+   concern B5 (GenR is multi-ethnic).
+9. **Missing set to zero.** Variants missing for some traits were given Z = 0
+   in the ICA input, which shrinks their component weights towards zero.
+
 ## Concerns
 
 These are open for discussion. None has been acted on yet, so that the
@@ -493,7 +548,9 @@ original results can be replicated first.
 4. **Genotype IDs.** Step 4 assumes the `.fam` `sample.ID` equals GenR `idc`
    (`cfg$genotype_id_column`). If it does not, a linking file is needed.
 5. **Genome build.** `snp_match` joins on position, so the ICA study and the
-   GenR genotypes must use the same build (GRCh37 vs GRCh38). This is not checked.
+   GenR genotypes must use the same build. Pan-UKB, the source of the weights,
+   is GRCh37 (see [Link to the genomica pipeline](#link-to-the-genomica-pipeline)).
+   This is not checked.
    `snp_match` errors when fewer than 20% of SNPs match, which catches gross
    mismatches only.
 6. **Imputed dosages vs hard calls.** Step 4 mean-imputes missing calls
