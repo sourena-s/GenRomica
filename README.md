@@ -172,7 +172,7 @@ Full model, with every term labelled:
  + {\color{red}\underbrace{u_i}_{\text{child random intercept}}}
  + \underbrace{\varepsilon_{ij}}_{\text{residual}}
 \end{aligned}
-\tag{1}
+\qquad\qquad \textbf{[1]}
 ```
 
 The three nested models differ only in which GPS terms are included:
@@ -248,7 +248,7 @@ z-transformed across children:
  + {\color{red}\underbrace{u_i}_{\text{child random intercept}}}
  + \underbrace{\varepsilon_{ij}}_{\text{residual}}
 \end{aligned}
-\tag{2}
+\qquad\qquad \textbf{[2]}
 ```
 
 Fitted in R (`R/05_run_regressions.R`; the formula is built with `reformulate()`, and covariates that are constant in the sample are left out):
@@ -280,7 +280,7 @@ For SES, diet and online use (one row per child):
  + \underbrace{\varepsilon_{i}}_{\text{residual}},
 \qquad \varepsilon_i \sim \mathcal{N}(0, \sigma^2)
 \end{aligned}
-\tag{3}
+\qquad\qquad \textbf{[3]}
 ```
 
 Fitted in R with ordinary least squares (`R/05_run_regressions.R`; the formula is built with `reformulate()`, and covariates that are constant in the sample are left out):
