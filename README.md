@@ -629,7 +629,7 @@ the original results can be replicated first.
 2. **Different CBCL instruments.** Wave f05 used the CBCL/1½-5, and later waves
    used the CBCL/6-18. The scales differ in items and range, but are pooled and
    z-scored together. Standardising within wave, or modelling the instrument,
-   would be more defensible.
+   would be more defensible. See [D. Comparability of scores across waves](#d-comparability-of-scores-across-waves).
 3. **Outcome standardisation is pooled over waves.** It does not change the
    p-values, but estimates are in pooled-SD units.
 4. **Skewed outcomes.** CBCL sums are counts with many zeros, and the models
@@ -664,3 +664,78 @@ the original results can be replicated first.
 14. **Timing.** `DietScore_8y` is measured at about age 8 and the online measure
     at about 17. Single-time outcomes are adjusted for age only where an age
     variable is given.
+
+### D. Comparability of scores across waves
+
+Scores whose items, scale version, informant or scanner differ between waves.
+Points not yet confirmed are marked **(check)**.
+
+#### Used in the current analysis
+
+**CBCL at f05 vs f09, f13 and f17: not comparable.**
+- In Generation R, the f05 wave (about age 6) used the preschool version,
+  CBCL/1½–5. The later waves used the school-age version, CBCL/6–18. The two
+  versions have different syndrome scales built from different items.
+- Item counts are from the CBCL manuals:
+
+| Scale in the pipeline | CBCL/1½–5 (f05) | CBCL/6–18 (f09–f17) | Comparable? |
+|---|---|---|---|
+| `anx`: anxious/depressed | 8 items | 13 items | No: different items and range |
+| `som`: somatic complaints | 7 items | 11 items | No |
+| `wit`: withdrawn | "Withdrawn", 8 items | "Withdrawn/Depressed", 8 items | No: same item count, different content |
+| `att`: attention problems | 5 items | 10 items | No |
+| `agg`: aggressive behaviour | 19 items | 18 items | No: overlapping but not identical items |
+| `sop`, `tho`, `rul`: social, thought, rule-breaking | **do not exist** | 11, 15 and 17 items | Not measured at f05 |
+
+- The preschool version also has scales that the school-age version lacks:
+  emotionally reactive and sleep problems.
+- **The `sum_wid_f05` → `sum_wit_f05` rename is suspect.** The two names
+  probably reflect two different scales: preschool "Withdrawn" and school-age
+  "Withdrawn/Depressed". If so, the original code's rename merges different
+  scales under one name, and the pipeline does the same. **(check** what `wid`
+  stands for in the GenR data dictionary.)
+- **f09, f13 and f17 are the same instrument**, so their raw sums are
+  comparable, provided the informant is the same. **(check** that f17 is still
+  parent-reported CBCL. If f17 is self-report (YSR) or an adult form, it is not
+  comparable either.)
+- **Consequence for the models (see C2).** The outcome is z-scored over all
+  waves pooled, and age is modelled as a smooth trajectory. A change of
+  instrument at f05 therefore looks like a developmental change, and it is
+  confounded with the age terms and the GPS × age interaction (H2).
+
+**MRI and DTI: possibly not comparable across waves (check).**
+- The first imaging wave (2009, ages 6–9, ~1,070 individuals) used a different
+  scanner from later waves. A dedicated 3T scanner was installed in 2013
+  ([White et al., 2018](https://pmc.ncbi.nlm.nih.gov/articles/PMC5803295)).
+- Scanner and acquisition differences shift grey-matter volume, cortical
+  thickness and especially FA/MD.
+- Check the scanner, sequence, FreeSurfer version and DTI pipeline for each
+  wave. If they differ, harmonise the data (e.g. ComBat) or add wave/scanner as
+  a covariate.
+
+**Single-time variables: no cross-wave issue.** These are the diet score at 8,
+online activity at 17, income, and parental education.
+
+#### Candidates not used yet
+
+- **Autistic traits (SRS):** the full scale (65 items) at about 6, the short
+  form (about 18 items) at about 13.5. Not comparable.
+- **Cognition:** SON-R nonverbal IQ at about 6 vs different subtests at about
+  13. Different tests.
+- **Executive function:** BRIEF-P (preschool version) at 4; any later BRIEF is
+  a different version.
+- **Screen time and physical activity:** parent report at 6 vs self-report at
+  13. Different informant and items.
+- **Bullying:** teacher report vs peer nomination or self-report. Different
+  informants.
+
+#### Options for the CBCL (none applied yet, to keep replicating the original)
+
+1. **Same instrument only:** use only f09–f17 for the longitudinal CBCL models
+   and analyse f05 separately. This is a config change: remove the f05 rows of
+   CBCL from `cfg$longitudinal`.
+2. **Standardise within each wave before pooling.** This removes level
+   differences between instruments, but also removes real change with age.
+3. **Common items only:** use only the items shared by both versions,
+   re-scored at every wave.
+4. **Age-normed T-scores:** comparable in meaning, but not on the raw scale.
