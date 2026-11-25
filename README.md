@@ -53,6 +53,7 @@ every genotyped GenR individual receives one score per component.
 | 4 | `R/04_compute_scores.R` | GenR genotypes (bigSNP), QC'd weights | subject-level scores `csv.gz` |
 | 5 | `R/05_run_regressions.R` | step 1 + step 4 output | results tables |
 | 6 | `R/06_plot_results.R` | step 5 output | PheWAS plot and heatmaps |
+| 7 | `R/07_plot_trajectories.R` | step 1, 4 and 5 output | trajectory figures (M2 fit by age and wave) |
 
 Every step takes a config file, and is run from this folder:
 
@@ -235,7 +236,7 @@ These are left to upstream processing, or listed as open points under [Concerns]
 
 ## The statistical models
 
-The comments in `R/05_run_regressions.R` describe the same models next to the
+The comments in `R/models.R` describe the same models next to the
 code.
 
 **Terminology.** Subject-level scores built from the ICA component weights are
@@ -285,7 +286,7 @@ The three nested models differ only in which GPS terms are included:
 \mathcal{M}_2:\ \text{all terms} \ \ (\text{GPS}\times\text{age})
 ```
 
-Fitted in R (`R/05_run_regressions.R`; the formula is built with `reformulate()`, and covariates that are constant in the sample are left out):
+Fitted in R (`R/models.R`; the formula is built with `reformulate()`, and covariates that are constant in the sample are left out):
 
 ```math
 \begin{aligned}
@@ -351,7 +352,7 @@ z-transformed across individuals:
 \qquad\qquad \textbf{[2]}
 ```
 
-Fitted in R (`R/05_run_regressions.R`; the formula is built with `reformulate()`, and covariates that are constant in the sample are left out):
+Fitted in R (`R/models.R`; the formula is built with `reformulate()`, and covariates that are constant in the sample are left out):
 
 ```math
 \begin{aligned}
@@ -383,7 +384,7 @@ For SES, diet and online use (one row per individual):
 \qquad\qquad \textbf{[3]}
 ```
 
-Fitted in R with ordinary least squares (`R/05_run_regressions.R`; the formula is built with `reformulate()`, and covariates that are constant in the sample are left out):
+Fitted in R with ordinary least squares (`R/models.R`; the formula is built with `reformulate()`, and covariates that are constant in the sample are left out):
 
 ```math
 \begin{aligned}
@@ -429,7 +430,7 @@ changes only the combined-set p-values, and the FDR values within those sets.
 For single-score H1, the 1-df *F*-test gives the same p-value as the *t*-test.
 
 To reproduce the original results, uncomment one line in `fit_lmm_score_set()`
-in `R/05_run_regressions.R`:
+in `R/models.R`:
 
 ```r
 # h1_p <- anova(m0, m1)[2, "Pr(>Chisq)"]
@@ -464,6 +465,22 @@ score set tested one score at a time, to `<results_dir>/figures/`:
 
 In both heatmaps, `*` marks p < 0.05 and `**` marks FDR-corrected p < 0.05.
 
+`R/07_plot_trajectories.R` draws, for selected GPS × repeated outcome pairs,
+`trajectory_<GPS>_<outcome>.png`. It refits the existing step-5 model M2 with
+the same code (`fit_lmm_one_score()` in `R/models.R`); no new model is defined.
+
+- **Panel a: observed data and M2 fit.**
+  - Grey lines: observed trajectories of 100 random individuals.
+  - Points: observed mean ± 95% CI per wave in GPS tertiles (descriptive).
+  - Curves: M2 fixed-effect predictions for the GPS at −1 SD, the mean and
+    +1 SD, with covariates at their sample means and 95% CI bands.
+- **Panel b: M2 residuals by wave**, including each individual's random
+  intercept. With a good fit, they are centred on 0 at every wave.
+- **Pairs drawn:** those with FDR-corrected p < 0.05 for H1 or H2. If none pass,
+  the `cfg$max_trajectory_plots` (default 6) pairs with the smallest p are drawn.
+  To choose the pairs yourself, set `cfg$trajectory_pairs` (columns `score`,
+  `outcome`).
+
 To try the figures on simulated results (20 components, all outcomes, no model
 fitting):
 
@@ -475,7 +492,13 @@ Rscript toy/make_toy_results.R
 Rscript R/06_plot_results.R config/toy_viz.R
 ```
 
-Requires `ggplot2` and `ggrepel`.
+To see the trajectory figure on simulated data with a known GPS × age effect:
+
+```bash
+Rscript toy/make_toy_trajectory_demo.R
+```
+
+Requires `ggplot2`, `ggrepel` and `patchwork`.
 
 ## Verification
 
@@ -688,7 +711,7 @@ original results can be replicated first.
 >   `age_interaction` was 3.4 times larger at 17, and its p-value changed by
 >   0.28 (median).
 > - **Centring on the average age.** Uncomment `# centre <- mean(d$age)` in
->   `centre_age()` in `R/05_run_regressions.R` to centre on the average age of
+>   `centre_age()` in `R/models.R` to centre on the average age of
 >   each model's analysis sample. On the toy data this changed H1 and H2
 >   p-values by less than 2×10⁻⁶.
 > - **Other standardisation.** z-scoring the outcome, the GPS and the gPCs

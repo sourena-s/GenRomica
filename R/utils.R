@@ -133,3 +133,50 @@ genr_tables <- function(cfg) {
 }
 
 genr_file <- function(cfg, table) file.path(cfg$genr_csv_dir, paste0(table, ".csv.gz"))
+
+
+# ---- Analysis data (shared by steps 5 and 7) ----------------------------------
+
+# GenR variables from the step-1 export plus the genetic scores, one row per
+# individual. Categorical covariates keep the level order of the original RDS
+# file, so the reference category is unchanged (first level = reference).
+load_genr_with_scores <- function(cfg) {
+  tables <- genr_tables(cfg)
+  genr <- read_table(genr_file(cfg, "covariates"))
+  stop_if_duplicated_ids(genr, "covariates.csv.gz")
+  for (table in setdiff(names(tables), "covariates")) {
+    add_columns_by_idc(genr, read_table(genr_file(cfg, table)), paste0(table, ".csv.gz"))
+  }
+  require_columns(genr, unique(unlist(tables)), "The exported GenR data",
+                  load_command = sprintf('d <- data.table::fread("%s")', genr_file(cfg, "<table>")))
+
+  factor_levels <- read_table(genr_file(cfg, "factor_levels"))
+  for (v in cfg$categorical_covariates) {
+    lv <- factor_levels[variable == v][order(order), level]
+    genr[, (v) := if (length(lv)) droplevels(factor(get(v), levels = lv)) else factor(get(v))]
+  }
+
+  # Genetic scores; individuals without genotype data get NA
+  for (path in cfg$score_files) add_columns_by_idc(genr, read_table(path), path)
+  require_columns(genr, unlist(cfg$score_sets, use.names = FALSE), "The genetic score file(s)",
+                  load_command = sprintf('d <- data.table::fread("%s")', cfg$score_files[1]))
+  genr
+}
+
+# Repeated measures in long format: one row per individual x wave x outcome,
+# keeping observations with both an outcome value and an age.
+# Columns: idc, covariates, age, outcome, domain, outcome_name, wave.
+make_long_data <- function(cfg, genr) {
+  id_and_covariates <- c("idc", cfg$covariates)
+  rbindlist(lapply(seq_len(nrow(cfg$longitudinal)), function(k) {
+    m <- cfg$longitudinal[k]
+    age_col <- paste0(m$age_prefix, "_", m$wave)
+    outcome_col <- paste0(m$column, "_", m$wave)
+
+    d <- genr[, c(id_and_covariates, age_col, outcome_col), with = FALSE]
+    setnames(d, c(age_col, outcome_col), c("age", "outcome"))
+    d[, `:=`(age = as.numeric(age), outcome = as.numeric(outcome),
+             domain = m$domain, outcome_name = m$outcome, wave = m$wave)]
+    d[!is.na(outcome) & !is.na(age)]
+  }))
+}
