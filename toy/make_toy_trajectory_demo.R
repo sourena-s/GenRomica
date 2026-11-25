@@ -42,4 +42,4 @@ p_text <- sprintf("H1: p = %s     H2: p = %s   (simulated data)",
                   formatC(fit$main[hypothesis == "H2", p_value], format = "e", digits = 1))
 dir.create("toy/data/viz/figures", recursive = TRUE, showWarnings = FALSE)
 save_png(plot_trajectory(fit$fit, "C3", "att", p_text), "trajectory_demo_GPS3_att.png",
-         width = 11, height = 5.6, dir = "toy/data/viz/figures")
+         width = 8.5, height = 6, dir = "toy/data/viz/figures")

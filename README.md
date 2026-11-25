@@ -469,13 +469,13 @@ In both heatmaps, `*` marks p < 0.05 and `**` marks FDR-corrected p < 0.05.
 `trajectory_<GPS>_<outcome>.png`. It refits the existing step-5 model M2 with
 the same code (`fit_lmm_one_score()` in `R/models.R`); no new model is defined.
 
-- **Panel a: observed data and M2 fit.**
-  - Grey lines: observed trajectories of 100 random individuals.
-  - Points: observed mean ± 95% CI per wave in GPS tertiles (descriptive).
-  - Curves: M2 fixed-effect predictions for the GPS at −1 SD, the mean and
-    +1 SD, with covariates at their sample means and 95% CI bands.
-- **Panel b: M2 residuals by wave**, including each individual's random
-  intercept. With a good fit, they are centred on 0 at every wave.
+One panel: outcome against age.
+
+- Grey points: every observation at its age (a scatter per wave).
+- Boxplots: outcome per wave (median, IQR, whiskers 1.5 IQR), at the wave's
+  median age. Wave names are shown along the top.
+- Curves on top: M2 fixed-effect predictions for the GPS at −1 SD, the mean
+  and +1 SD, with covariates at their sample means and 95% CI bands.
 - **Pairs drawn:** those with FDR-corrected p < 0.05 for H1 or H2. If none pass,
   the `cfg$max_trajectory_plots` (default 6) pairs with the smallest p are drawn.
   To choose the pairs yourself, set `cfg$trajectory_pairs` (columns `score`,
@@ -498,7 +498,7 @@ To see the trajectory figure on simulated data with a known GPS × age effect:
 Rscript toy/make_toy_trajectory_demo.R
 ```
 
-Requires `ggplot2`, `ggrepel` and `patchwork`.
+Requires `ggplot2` and `ggrepel`.
 
 ## Verification
 

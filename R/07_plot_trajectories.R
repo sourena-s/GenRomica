@@ -57,5 +57,5 @@ for (k in seq_len(nrow(pairs))) {
   }, ""), collapse = "     ")
 
   save_png(plot_trajectory(fit$fit, score_k, outcome_k, p_text),
-           sprintf("trajectory_%s_%s.png", label_score(score_k), outcome_k), width = 11, height = 5.6, dir = fig_dir)
+           sprintf("trajectory_%s_%s.png", label_score(score_k), outcome_k), width = 8.5, height = 6, dir = fig_dir)
 }
