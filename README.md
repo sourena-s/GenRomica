@@ -732,8 +732,8 @@ online activity at 17, income, and parental education.
 #### Options for the CBCL (none applied yet, to keep replicating the original)
 
 1. **Same instrument only:** use only f09–f17 for the longitudinal CBCL models
-   and analyse f05 separately. This is a config change: remove the f05 rows of
-   CBCL from `cfg$longitudinal`.
+   and analyse f05 separately. Uncomment the marked line in `config/project.R`
+   (`cfg$longitudinal <- cfg$longitudinal[!(domain == "CBCL" & wave == "f05")]`).
 2. **Standardise within each wave before pooling.** This removes level
    differences between instruments, but also removes real change with age.
 3. **Common items only:** use only the items shared by both versions,

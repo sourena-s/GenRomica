@@ -100,6 +100,11 @@ cfg$longitudinal <- rbind(
   repeated_measure("DTI", c("mean_FA_genr", "mean_MD_genr"), "age_child_mri", cfg$waves)
 )
 
+# Uncomment to remove the CBCL f05 timepoint from all analyses. At f05 the
+# CBCL/1½-5 was used, which is not comparable with the CBCL/6-18 used at later
+# waves (README, concern D). The CBCL models then use waves f09, f13 and f17 only.
+# cfg$longitudinal <- cfg$longitudinal[!(domain == "CBCL" & wave == "f05")]
+
 # Outcomes measured once. age_var (optional) is added as a covariate.
 cfg$single_outcomes <- data.table(
   outcome = c("INCOME5", "EDUCM", "EDUCP", "DietScore_8y", "onlineweek_child_F17"),
