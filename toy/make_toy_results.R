@@ -3,7 +3,8 @@
 # =============================================================================
 # Writes toy/data/viz/results.csv in the format of step 5 (results.csv), for
 # 20 GenomICA components (C1-C20) and every outcome in config/project.R:
-#   H1 for all 17 outcomes, H2 for the 12 repeated measures.
+#   H1 for all 17 outcomes; H2_lin_interact, H2_quad_interact and
+#   H2_lin_and_quad_interact for the 12 repeated measures.
 # No models are fitted. Most associations are null; a few planted effects make
 # the figures show significant and FDR-significant cells.
 #
@@ -40,10 +41,18 @@ h1[, hypothesis := "H1"]
 h2 <- CJ(predictor = components, outcome = long$outcome, sorted = FALSE)
 h2 <- merge(h2, outcomes, by = "outcome", sort = FALSE)
 h2[, n_id := round(runif(.N, 2500, 5500))]
-h2[, f := rchisq(.N, df = 2) / 2]
-h2[h2_effects, on = .(predictor, outcome), f := f + 9]
-h2[, p_value := pf(f, 2, n_id * 2, lower.tail = FALSE)]
-h2[, `:=`(estimate = NA_real_, std_error = NA_real_, incremental_r2 = f * 2 / (n_id * 2), hypothesis = "H2")]
+h2[, se := 1 / sqrt(n_id)]
+h2[, `:=`(z_lin = rnorm(.N), z_quad = rnorm(.N))]
+h2[h2_effects, on = .(predictor, outcome), `:=`(z_lin = z_lin + 4, z_quad = z_quad - 2.5)]
+lin  <- h2[, .(predictor, outcome, domain, type, n_id, hypothesis = "H2_lin_interact",
+               estimate = z_lin * se, std_error = se, p_value = 2 * pnorm(-abs(z_lin)), incremental_r2 = (z_lin * se)^2)]
+quad <- h2[, .(predictor, outcome, domain, type, n_id, hypothesis = "H2_quad_interact",
+               estimate = z_quad * se, std_error = se, p_value = 2 * pnorm(-abs(z_quad)), incremental_r2 = (z_quad * se)^2)]
+both <- h2[, .(predictor, outcome, domain, type, n_id, hypothesis = "H2_lin_and_quad_interact",
+               estimate = NA_real_, std_error = NA_real_,
+               p_value = pchisq(z_lin^2 + z_quad^2, df = 2, lower.tail = FALSE),
+               incremental_r2 = ((z_lin^2 + z_quad^2) * se^2))]
+h2 <- rbind(lin, quad, both)
 
 results <- rbind(h1, h2, fill = TRUE)
 results[, `:=`(score_group = "PCS", singular = FALSE, n_obs = n_id * fifelse(type == "repeated", 3, 1))]
@@ -53,6 +62,6 @@ results <- results[, .(hypothesis, estimate, std_error, p_value, incremental_r2,
 
 dir.create("toy/data/viz", recursive = TRUE, showWarnings = FALSE)
 fwrite(results, "toy/data/viz/results.csv")
-message(sprintf("Wrote toy/data/viz/results.csv: %d rows (%d H1, %d H2); %d nominal and %d FDR-significant",
-                nrow(results), sum(results$hypothesis == "H1"), sum(results$hypothesis == "H2"),
+message(sprintf("Wrote toy/data/viz/results.csv: %d rows (%d H1, %d H2 tests); %d nominal and %d FDR-significant",
+                nrow(results), sum(results$hypothesis == "H1"), sum(results$hypothesis != "H1"),
                 sum(results$p_value < 0.05), sum(results$p_fdr < 0.05)))

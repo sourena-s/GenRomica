@@ -71,7 +71,19 @@ system2("Rscript", "reference/original_regression.R", stdout = FALSE, stderr = F
 
 read_results <- function(source, name) {
   path <- file.path(toy, source, "results", name)
-  if (file.size(path) == 0) data.table() else fread(path)
+  d <- if (file.size(path) == 0) data.table() else fread(path)
+  # Added hypotheses: the new code also tests H2_lin_interact (linear GPS x age
+  # only) and H2_quad_interact (GPS x age^2 only), which the original code does
+  # not have. The original's H2 is the
+  # new H2_lin_and_quad_interact.
+  if (source == "pipeline_out" && "hypothesis" %in% names(d)) {
+    d <- d[!hypothesis %in% c("H2_lin_interact", "H2_quad_interact")]
+    d[hypothesis == "H2_lin_and_quad_interact", hypothesis := "H2"]
+  }
+  if (source == "pipeline_out" && name == "h2_details.csv" && nrow(d)) {
+    d[, grep("^lin_interaction|^age2_interaction_p_fdr$", names(d), value = TRUE) := NULL]
+  }
+  d
 }
 
 # Intended change: the new code tests H1 of the combined score sets in the

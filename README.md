@@ -277,14 +277,15 @@ Full model, with every term labelled:
 \qquad\qquad \textbf{[1]}
 ```
 
-The three nested models differ only in which GPS terms are included:
+The four nested models differ only in which GPS terms are included:
 
 ```math
-\mathcal{M}_0:\ \beta_3=\beta_4=\beta_5=0 \ \ (\text{no GPS})
-\qquad
-\mathcal{M}_1:\ \beta_4=\beta_5=0 \ \ (\text{GPS main effect})
-\qquad
-\mathcal{M}_2:\ \text{all terms} \ \ (\text{GPS}\times\text{age})
+\begin{aligned}
+&\mathcal{M}_0:\ \beta_3=\beta_4=\beta_5=0 \ \ (\text{no GPS})
+&&\mathcal{M}_1:\ \beta_4=\beta_5=0 \ \ (\text{GPS main effect})\\[4pt]
+&\mathcal{M}_{2,\mathrm{lin}}:\ \beta_5=0 \ \ (\text{linear GPS}\times\text{age})
+&&\mathcal{M}_2:\ \text{all terms} \ \ (\text{linear and quadratic GPS}\times\text{age})
+\end{aligned}
 ```
 
 Fitted in R (`R/models.R`; the formula is built with `reformulate()`, and covariates that are constant in the sample are left out):
@@ -293,6 +294,7 @@ Fitted in R (`R/models.R`; the formula is built with `reformulate()`, and covari
 \begin{aligned}
 &\mathcal{M}_0:\ \mathtt{lmer(outcome }\sim\mathtt{ age\_c + age2} \\
 &\qquad\quad \mathtt{+ sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\mathtt{(1 | idc)}}\mathtt{, REML = FALSE)} \\[2pt]&\mathcal{M}_1:\ \mathtt{lmer(outcome }\sim\mathtt{ age\_c + age2 + score} \\
+&\qquad\quad \mathtt{+ sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\mathtt{(1 | idc)}}\mathtt{, REML = FALSE)} \\[2pt]&\mathcal{M}_{2,\mathrm{lin}}:\ \mathtt{lmer(outcome }\sim\mathtt{ age\_c + age2 + score + score:age\_c} \\
 &\qquad\quad \mathtt{+ sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\mathtt{(1 | idc)}}\mathtt{, REML = FALSE)} \\[2pt]&\mathcal{M}_2:\ \mathtt{lmer(outcome }\sim\mathtt{ age\_c + age2 + score + score:age\_c + score:age2} \\
 &\qquad\quad \mathtt{+ sex + genotype\_cohort + gPC1 + gPC2 + gPC3 + gPC4 + }{\color{red}\mathtt{(1 | idc)}}\mathtt{, REML = FALSE)}
 \end{aligned}
@@ -323,14 +325,23 @@ Fitted in R (`R/models.R`; the formula is built with `reformulate()`, and covari
 **Hypotheses** (all tested with `lmerTest::contestMD`, Satterthwaite denominator df):
 
 ```math
-\textbf{H1:}\;\; \beta_3 = 0 \;\text{ in } \mathcal{M}_1
-\qquad\qquad
-\textbf{H2:}\;\; \beta_4 = \beta_5 = 0 \;\text{ in } \mathcal{M}_2
+\begin{aligned}
+&\textbf{H1:} && \beta_3 = 0 && \text{in } \mathcal{M}_1\\
+&\textbf{H2\_lin\_interact:} && \beta_4 = 0 && \text{in } \mathcal{M}_{2,\mathrm{lin}}\\
+&\textbf{H2\_quad\_interact:} && \beta_5 = 0 && \text{in } \mathcal{M}_2\\
+&\textbf{H2\_lin\_and\_quad\_interact:} && \beta_4 = \beta_5 = 0 && \text{in } \mathcal{M}_2
+\end{aligned}
 ```
 
 - **H1** is a 1-df *F*-test; its p-value equals that of the Satterthwaite *t*-test. Because $`\mathcal{M}_1`$ has no interaction terms, $`\beta_3`$ is the association averaged over ages, in SD of outcome per SD of score.
-- **H2** is a 2-df *F*-test of whether the association changes with age. In $`\mathcal{M}_2`$, $`\beta_3`$ is the association at age 17.
-- **Effect size:** the incremental Nakagawa marginal $`R^2`$ (variance explained by fixed effects): $`R^2_{\mathcal{M}_1} - R^2_{\mathcal{M}_0}`$ for H1 and $`R^2_{\mathcal{M}_2} - R^2_{\mathcal{M}_1}`$ for H2.
+- **H2_lin_interact** is a 1-df *F*-test: does the association change linearly with age? $`\beta_4`$ in $`\mathcal{M}_{2,\mathrm{lin}}`$ is the same for any age centring.
+- **H2_quad_interact** is a 1-df *F*-test: does the change with age curve, on top of the linear change? $`\beta_5`$ is the same for any age centring.
+- **H2_lin_and_quad_interact** is the 2-df joint *F*-test of both terms: does the association change with age in any way? This is the original code's H2. In $`\mathcal{M}_2`$, $`\beta_3`$ is the association at age 17.
+- **Effect size:** the incremental Nakagawa marginal $`R^2`$ (variance explained by fixed effects):
+  - H1: $`R^2_{\mathcal{M}_1} - R^2_{\mathcal{M}_0}`$;
+  - H2_lin_interact: $`R^2_{\mathcal{M}_{2,\mathrm{lin}}} - R^2_{\mathcal{M}_1}`$;
+  - H2_quad_interact: $`R^2_{\mathcal{M}_2} - R^2_{\mathcal{M}_{2,\mathrm{lin}}}`$;
+  - H2_lin_and_quad_interact: $`R^2_{\mathcal{M}_2} - R^2_{\mathcal{M}_1}`$.
 
 ### 2. Repeated measures, a whole score set jointly — equation [2]
 
@@ -402,7 +413,9 @@ Fitted in R with ordinary least squares (`R/models.R`; the formula is built with
 Every hypothesis tested, with the equation used to test it:
 
 - **H1, one GPS, repeated measures** (CBCL, MRI, DTI). Equation [1], model $`\mathcal{M}_1`$: $`\beta_3 = 0`$. Satterthwaite *F*-test with 1 df.
-- **H2, one GPS, repeated measures** (CBCL, MRI, DTI): the GPS association changes with age. Equation [1], model $`\mathcal{M}_2`$: $`\beta_4 = \beta_5 = 0`$. Satterthwaite *F*-test with 2 df.
+- **H2_lin_interact, one GPS, repeated measures** (CBCL, MRI, DTI): the association changes linearly with age. Equation [1], model $`\mathcal{M}_{2,\mathrm{lin}}`$: $`\beta_4 = 0`$. Satterthwaite *F*-test with 1 df.
+- **H2_quad_interact, one GPS, repeated measures**: the change with age curves, beyond the linear change. Equation [1], model $`\mathcal{M}_2`$: $`\beta_5 = 0`$. Satterthwaite *F*-test with 1 df.
+- **H2_lin_and_quad_interact, one GPS, repeated measures**: the association changes with age in any way (the original code's H2). Equation [1], model $`\mathcal{M}_2`$: $`\beta_4 = \beta_5 = 0`$. Satterthwaite *F*-test with 2 df.
 - **H1, one GPS, single-time outcomes** (SES, diet, online). Equation [3] with one score: $`\theta_1 = 0`$. Nested-model *F*-test.
 - **H1, a GPS set jointly, repeated measures** (CBCL, MRI, DTI). Equation [2]: $`\theta_1 = \dots = \theta_K = 0`$. Satterthwaite *F*-test with $`K`$ df.
 - **H1, a GPS set jointly, single-time outcomes** (SES, diet, online). Equation [3] with all $`K`$ scores of the set: $`\theta_1 = \dots = \theta_K = 0`$. Nested-model *F*-test.
@@ -413,8 +426,9 @@ discovery rate (FDR), separately within each score set × hypothesis:
 - For each single-score set (`PCS`, `UK_PCS`, `PGS`), H1 is one family. It
   covers every score in the set and every outcome, both repeated measures [1]
   and single-time outcomes [3].
-- For each single-score set, H2 is another family. It covers every score in
-  the set and every repeated measure [1].
+- For each single-score set, each of the three age-interaction hypotheses
+  (H2_lin_interact, H2_quad_interact, H2_lin_and_quad_interact) is its own
+  family. Each covers every score in the set and every repeated measure [1].
 - Each jointly tested set (`PCS_combined`, `UK_PCS_combined`) is its own H1
   family, covering every outcome, from [2] and [3].
 
@@ -448,23 +462,26 @@ score set tested one score at a time, to `<results_dir>/figures/`:
 
 - `<set>_phewas.png`: −log10 p of every score × outcome test, grouped and
   coloured by domain.
-  - Panel a shows H1. Triangles point up or down with the sign of the estimate.
-  - Panel b shows H2.
+  - One panel per hypothesis: a H1, b H2_lin_interact, c H2_quad_interact,
+    d H2_lin_and_quad_interact.
+  - Triangles point up or down with the sign of the estimate (H1 and the two
+    single-term interaction tests). Circles mark the joint test, which has no
+    sign.
   - Each outcome has one point per component (20 for C1–C20).
   - Component scores `C1`…`C20` are labelled `GPS1`…`GPS20` in the figures
     (`label_score()` in `R/06_plot_results.R`). The pipeline keeps the names
     `C1`…`C20` internally.
-  - The red dashed line marks p = 0.05 for a single test. The purple dashed
+  - The purple dashed line marks p = 0.05 for a single test. The red dashed
     line marks the FDR 5% threshold across all scores and outcomes of the
     panel. Points passing FDR are labelled.
   - Domains appear in the order CBCL, SES, Diet, Online, T1w MRI, dMRI, on a white
     background separated by thin dashed grey vertical lines.
-- `<set>_heatmap_H1.png`: score × outcome heatmap of the standardised estimate,
-  on a diverging blue–grey–red scale.
-- `<set>_heatmap_H2.png`: score × outcome heatmap of −log10 p for the GPS × age
-  interaction.
+- `<set>_heatmap_<hypothesis>.png`: one score × outcome heatmap per hypothesis.
+  - For H1, H2_lin_interact and H2_quad_interact, colour is the estimate on a
+    diverging blue–grey–red scale.
+  - For H2_lin_and_quad_interact, colour is −log10 p.
 
-In both heatmaps, `*` marks p < 0.05 and `**` marks FDR-corrected p < 0.05.
+In all heatmaps, `*` marks p < 0.05 and `**` marks FDR-corrected p < 0.05.
 
 `R/07_plot_trajectories.R` draws, for selected GPS × repeated outcome pairs,
 `trajectory_<GPS>_<outcome>.png`. It refits the existing step-5 model M2 with
@@ -477,7 +494,7 @@ One panel: outcome against age.
   median age. Wave names are shown along the top.
 - Dashed curves on top: M2 fixed-effect predictions for the GPS at −1 SD, the mean
   and +1 SD, with covariates at their sample means.
-- **Pairs drawn:** those with FDR-corrected p < 0.05 for H1 or H2. If none pass,
+- **Pairs drawn:** those with FDR-corrected p < 0.05 for any hypothesis. If none pass,
   the `cfg$max_trajectory_plots` (default 6) pairs with the smallest p are drawn.
   To choose the pairs yourself, set `cfg$trajectory_pairs` (columns `score`,
   `outcome`).
@@ -520,7 +537,9 @@ It does three things:
      changed, and checks that the merged and cleaned files are identical;
    - recomputes one score by hand and checks it against bigsnpr;
    - runs the original regression code and checks that every result table
-     matches the new code to 1e-10. The exception is the combined-set
+     matches the new code to 1e-10. The original's H2 is compared with
+     H2_lin_and_quad_interact; H2_lin_interact and H2_quad_interact are new
+     and have no counterpart. The other exception is the combined-set
      mixed-model p-values (and FDR values), which changed deliberately. For
      those, it reports how the new F-test and the old likelihood-ratio
      p-values compare. On the toy data the correlation of −log10 p is 1.000.
@@ -690,8 +709,8 @@ original results can be replicated first.
 
 > [!CAUTION]
 > **Age centred at 17, the oldest wave.** The centring age changes the
-> interpretation and precision of single coefficients in M2. The H1 and H2
-> tests, fitted values and R² stay the same.
+> interpretation and precision of single coefficients in M2. The H1 and all
+> three H2 tests, fitted values and R² stay the same.
 >
 > - **Single coefficients.** In M2, $`\beta_3`$ is the GPS association at the
 >   centring age, and $`\beta_4`$ (`age_interaction` in `h2_details.csv`) is the
@@ -700,15 +719,18 @@ original results can be replicated first.
 >   imprecise. $`\beta_5`$ is the same for any centring age.
 > - **H1** ($`\beta_3`$ in M1). M1 has no GPS × age terms, so $`\beta_3`$ and its
 >   p-value are the same for any centring age.
-> - **H2** (joint test $`\beta_4 = \beta_5 = 0`$ in M2). Moving the centre *d*
+> - **H2_lin_interact** ($`\beta_4`$ in M2_lin) and **H2_quad_interact**
+>   ($`\beta_5`$ in M2). Moving the centre changes only lower-order terms, so these
+>   coefficients and their p-values are the same for any centring age.
+> - **H2_lin_and_quad_interact** (joint test $`\beta_4 = \beta_5 = 0`$ in M2). Moving the centre *d*
 >   years earlier ($`a = a' + d`$) turns $`(\beta_4, \beta_5)`$ into
 >   $`(\beta_4 + 2d\,\beta_5,\ \beta_5)`$. Both pairs are zero together, so the
 >   joint *F*-test gives the same result.
 > - **Fitted model.** $`(a - c)^2 = a^2 - 2ca + c^2`$, so the age terms and their
 >   GPS interactions describe the same model for any centring age *c*. Fitted
 >   values, likelihood, variance components and R² are identical.
-> - **Toy data check.** Centring at 11 instead of 17 changed H1 and H2
->   p-values, estimates and R² by less than 2×10⁻⁷. The SE of
+> - **Toy data check.** Centring at 11 instead of 17 changed the p-values and
+>   estimates of H1 and all three H2 tests by less than 2×10⁻⁷. The SE of
 >   `age_interaction` was 3.4 times larger at 17, and its p-value changed by
 >   0.28 (median).
 > - **Centring on the average age.** Uncomment `# centre <- mean(d$age)` in

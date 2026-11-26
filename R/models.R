@@ -105,6 +105,7 @@ safe_fit <- function(expr, label) {
 #
 #   M0: y_ij = b0 + b1 a_ij + b2 a_ij^2 + g'X_i                              + u_i + e_ij
 #   M1: y_ij = b0 + b1 a_ij + b2 a_ij^2 + g'X_i + b3 S_i                     + u_i + e_ij
+#   M2_lin: M1 + b4 S_i a_ij                                                 (linear interaction)
 #   M2: y_ij = b0 + b1 a_ij + b2 a_ij^2 + g'X_i + b3 S_i
 #                 + b4 S_i a_ij + b5 S_i a_ij^2                              + u_i + e_ij
 #
@@ -123,8 +124,8 @@ safe_fit <- function(expr, label) {
 #   - genotyping cohort: differences between genotyping batches/arrays
 #   - gPC1-4: population stratification (ancestry differences that could
 #     correlate with both the score and the outcome)
-#   - S (M1, M2): the genetic score being tested
-#   - S x age, S x age^2 (M2): lets the score effect change with age
+#   - S (M1, M2_lin, M2): the genetic score being tested
+#   - S x age (M2_lin, M2), S x age^2 (M2): lets the score effect change with age
 # Random effects
 #   - an individual-specific intercept u_i. Repeated observations of the same individual
 #     are correlated; u_i absorbs stable between-individual differences so the
@@ -136,9 +137,18 @@ safe_fit <- function(expr, label) {
 #   H1: b3 = 0 in M1 (F-test with 1 df, Satterthwaite; identical p-value to the
 #       Satterthwaite t-test). M1 has no interaction, so b3 is the association
 #       averaged over ages, in SD of outcome per SD of score.
-#   H2: b4 = b5 = 0 in M2 (joint F-test, Satterthwaite df): does the association
-#       change with age? In M2, b3 is the association at age 17.
-#   Incremental R2 (Nakagawa marginal): M1 - M0 for H1, M2 - M1 for H2.
+#   H2_lin_interact: b4 = 0 in M2_lin (F-test with 1 df, Satterthwaite): does the
+#       association change linearly with age? b4 does not depend on where age
+#       is centred.
+#   H2_quad_interact: b5 = 0 in M2 (F-test with 1 df, Satterthwaite): does the
+#       change with age curve, on top of the linear change? b5 does not depend
+#       on where age is centred.
+#   H2_lin_and_quad_interact: b4 = b5 = 0 in M2 (joint F-test, 2 df, Satterthwaite):
+#       does the association change with age, linearly or curved? This is the
+#       original code's H2. In M2, b3 is the association at age 17.
+#   Incremental R2 (Nakagawa marginal): M1 - M0 for H1, M2_lin - M1 for
+#       H2_lin_interact, M2 - M2_lin for H2_quad_interact, M2 - M1 for
+#       H2_lin_and_quad_interact.
 
 fit_lmm_one_score <- function(data, score_name, return_model = FALSE) {
 
@@ -165,15 +175,19 @@ fit_lmm_one_score <- function(data, score_name, return_model = FALSE) {
              data = d, REML = FALSE)
   m1 <- lmer(reformulate(c("age_c", "age2", "score", covars, random_intercept), "outcome"),
              data = d, REML = FALSE)
+  m2_lin <- lmer(reformulate(c("age_c", "age2", "score", "score:age_c", covars, random_intercept), "outcome"),
+                 data = d, REML = FALSE)
   m2 <- lmer(reformulate(c("age_c", "age2", "score", "score:age_c", "score:age2", covars, random_intercept),
                          "outcome"),
              data = d, REML = FALSE)
 
   r2_m0 <- marginal_r2(m0)
   r2_m1 <- marginal_r2(m1)
+  r2_m2_lin <- marginal_r2(m2_lin)
   r2_m2 <- marginal_r2(m2)
 
   coef_m1 <- summary(m1)$coefficients
+  coef_m2_lin <- summary(m2_lin)$coefficients
   coef_m2 <- summary(m2)$coefficients
 
   # H1: F-test of the score effect in M1
@@ -182,23 +196,34 @@ fit_lmm_one_score <- function(data, score_name, return_model = FALSE) {
   # The old code used the t-test p-value from summary(m1) (same value):
   # h1_p <- coef_m1["score", "Pr(>|t|)"]
 
-  # H2: joint F-test of the two score x age terms
+  # H2_lin_interact: F-test (1 df) of the linear score x age term in M2_lin
+  lin_term <- interaction_term(m2_lin, "score", "age_c")
+  h2_lin_test <- joint_f_test(m2_lin, lin_term)
+
+  # H2_quad_interact: F-test (1 df) of the quadratic score x age^2 term in M2,
+  # on top of the linear term
   age_term  <- interaction_term(m2, "score", "age_c")
   age2_term <- interaction_term(m2, "score", "age2")
+  h2_quad_test <- joint_f_test(m2, age2_term)
+
+  # H2_lin_and_quad_interact: joint F-test (2 df) of both score x age terms in M2
+  # (the original code's H2)
   h2_test <- joint_f_test(m2, c(age_term, age2_term))
 
   n_id <- uniqueN(d$idc)
 
   main <- data.table(
-    hypothesis     = c("H1", "H2"),
-    estimate       = c(coef_m1["score", "Estimate"], NA_real_),
-    std_error      = c(coef_m1["score", "Std. Error"], NA_real_),
-    p_value        = c(h1_p, h2_test[1, "Pr(>F)"]),
-    incremental_r2 = c(r2_m1 - r2_m0, r2_m2 - r2_m1),
+    hypothesis     = c("H1", "H2_lin_interact", "H2_quad_interact", "H2_lin_and_quad_interact"),
+    estimate       = c(coef_m1["score", "Estimate"], coef_m2_lin[lin_term, "Estimate"],
+                       coef_m2[age2_term, "Estimate"], NA_real_),
+    std_error      = c(coef_m1["score", "Std. Error"], coef_m2_lin[lin_term, "Std. Error"],
+                       coef_m2[age2_term, "Std. Error"], NA_real_),
+    p_value        = c(h1_p, h2_lin_test[1, "Pr(>F)"], h2_quad_test[1, "Pr(>F)"], h2_test[1, "Pr(>F)"]),
+    incremental_r2 = c(r2_m1 - r2_m0, r2_m2_lin - r2_m1, r2_m2 - r2_m2_lin, r2_m2 - r2_m1),
     predictor      = score_name,
     n_id           = n_id,
     n_obs          = nrow(d),
-    singular       = c(isSingular(m1), isSingular(m2))
+    singular       = c(isSingular(m1), isSingular(m2_lin), isSingular(m2), isSingular(m2))
   )
 
   h2_details <- data.table(
@@ -212,6 +237,9 @@ fit_lmm_one_score <- function(data, score_name, return_model = FALSE) {
     joint_F        = h2_test[1, "F value"],
     joint_p        = h2_test[1, "Pr(>F)"],
     incremental_r2 = r2_m2 - r2_m1,
+    lin_interaction    = coef_m2_lin[lin_term, "Estimate"],     # from M2_lin
+    lin_interaction_se = coef_m2_lin[lin_term, "Std. Error"],
+    lin_interaction_p  = h2_lin_test[1, "Pr(>F)"],
     n_id           = n_id,
     n_obs          = nrow(d)
   )
@@ -226,7 +254,7 @@ fit_lmm_one_score <- function(data, score_name, return_model = FALSE) {
 
   result <- list(main = main, h2_details = h2_details, covariates = covariates)
   # Step 7 (figures) uses the fitted models and their analysis data
-  if (return_model) result$fit <- list(m1 = m1, m2 = m2, data = d)
+  if (return_model) result$fit <- list(m1 = m1, m2_lin = m2_lin, m2 = m2, data = d)
   result
 }
 

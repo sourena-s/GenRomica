@@ -9,7 +9,12 @@
 #
 # Hypotheses
 #   H1  the score(s) are associated with the outcome
-#   H2  (single scores, repeated measures) the association changes with age
+#   H2_lin_interact           (single scores, repeated measures) the association
+#                             changes linearly with age (GPS x age)
+#   H2_quad_interact          (single scores, repeated measures) the change with
+#                             age curves, beyond the linear change (GPS x age^2)
+#   H2_lin_and_quad_interact  (single scores, repeated measures) the association
+#                             changes with age, linearly or curved (GPS x age, GPS x age^2)
 #
 # The statistical models are described in R/models.R. p-values
 # are FDR-corrected (Benjamini-Hochberg) within each score set and hypothesis.
@@ -150,10 +155,14 @@ warnings_table    <- rbind(data.table(model = character(), warning = character()
 results[, p_fdr := p.adjust(p_value, method = "BH"), by = .(score_group, hypothesis)]
 
 if (nrow(h2_details)) {
-  h2_fdr <- results[hypothesis == "H2",
-                    .(predictor, score_group, domain, outcome, joint_p_fdr = p_fdr)]
-  h2_details <- merge(h2_details, h2_fdr,
-                      by = c("predictor", "score_group", "domain", "outcome"), all.x = TRUE)
+  fdr_of <- function(h, name) {
+    x <- results[hypothesis == h, .(predictor, score_group, domain, outcome, p_fdr)]
+    setnames(x, "p_fdr", name)
+  }
+  keys <- c("predictor", "score_group", "domain", "outcome")
+  h2_details <- merge(h2_details, fdr_of("H2_lin_and_quad_interact", "joint_p_fdr"), by = keys, all.x = TRUE)
+  h2_details <- merge(h2_details, fdr_of("H2_lin_interact", "lin_interaction_p_fdr"), by = keys, all.x = TRUE)
+  h2_details <- merge(h2_details, fdr_of("H2_quad_interact", "age2_interaction_p_fdr"), by = keys, all.x = TRUE)
 }
 
 dir.create(cfg$results_dir, recursive = TRUE, showWarnings = FALSE)

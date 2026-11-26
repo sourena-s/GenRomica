@@ -4,14 +4,15 @@
 # Reads results.csv from step 5 (cfg$results_dir) and writes, for every score
 # set tested one score at a time (e.g. PCS = C1-C20), to cfg$results_dir/figures:
 #
-#   <set>_phewas.png        PheWAS-style plot: -log10(p) of every score x
-#                           outcome, outcomes grouped and coloured by domain.
-#                           (a) H1 (triangles point up/down with the sign of
-#                           the estimate), (b) H2 (age interaction).
-#   <set>_heatmap_H1.png    score x outcome heatmap of the standardised
-#                           estimate (diverging colour scale)
-#   <set>_heatmap_H2.png    score x outcome heatmap of -log10(p) for the
-#                           GPS x age interaction (sequential colour scale)
+#   <set>_phewas.png            PheWAS-style plot: -log10(p) of every score x
+#                               outcome, outcomes grouped and coloured by domain;
+#                               one panel per hypothesis (H1, H2_lin_interact,
+#                               H2_quad_interact, H2_lin_and_quad_interact).
+#                               Triangles point up/down with the sign of the
+#                               estimate; circles: joint test without a sign.
+#   <set>_heatmap_<hyp>.png     score x outcome heatmap per hypothesis: the
+#                               estimate (diverging colour scale) for tests with
+#                               a sign, -log10(p) (sequential) for the joint test
 #
 # Significance marks: * p < 0.05; ** FDR-corrected p < 0.05.
 # Jointly tested sets (*_combined) have one result per outcome and are not
@@ -44,12 +45,14 @@ phewas_plot <- function(d, set_name) {
   d <- copy(d)
   d[, domain := factor(domain_display[domain], levels = domain_display[intersect(domain_order, unique(domain))])]
   d[, minus_log10_p := -log10(p_value)]
-  d[, direction := fcase(hypothesis == "H2", "Age interaction (H2)",
+  info <- hypothesis_info[hypothesis %in% unique(d$hypothesis)]
+  info[, panel := paste0(letters[.I], "   ", title)]
+  d[info, on = "hypothesis", `:=`(panel = i.panel, signed = i.signed)]
+  d[, panel := factor(panel, levels = info$panel)]
+  d[, direction := fcase(!signed, "Joint test (no sign)",
                          estimate >= 0, "Positive estimate",
                          default = "Negative estimate")]
-  d[, direction := factor(direction, levels = c("Positive estimate", "Negative estimate", "Age interaction (H2)"))]
-  d[, panel := factor(fifelse(hypothesis == "H1", "a   H1: association, one score at a time",
-                              "b   H2: change of the association with age (GPS × age)"))]
+  d[, direction := factor(direction, levels = c("Positive estimate", "Negative estimate", "Joint test (no sign)"))]
 
   # x position: outcomes in domain order (1, 2, ...); the scores of one outcome
   # are spread over a narrow band around that position so they do not overlap
@@ -96,14 +99,14 @@ phewas_plot <- function(d, set_name) {
     scale_x_continuous(breaks = NULL, expand = expansion(add = 0.1)) +
     scale_y_continuous(expand = expansion(mult = c(0, 0.02))) +
     scale_fill_manual(values = domain_colours, name = "Domain") +
-    scale_shape_manual(values = c("Positive estimate" = 24, "Negative estimate" = 25, "Age interaction (H2)" = 21),
+    scale_shape_manual(values = c("Positive estimate" = 24, "Negative estimate" = 25, "Joint test (no sign)" = 21),
                        name = NULL, drop = FALSE) +
     guides(fill = guide_legend(override.aes = list(shape = 22, size = 4, colour = NA), order = 1),
            shape = guide_legend(override.aes = list(fill = ink_muted, size = 2.6), order = 2)) +
     labs(x = NULL, y = expression(-log[10](italic(p))),
          title = sprintf("%s: GenomICA polygenic scores and outcomes in Generation R", set_name),
          caption = paste0("Each point is one score × outcome test (one point per component for every outcome). ",
-                          "Red dashed line: p = 0.05 for a single test.\nPurple dashed line: FDR 5% threshold across all ",
+                          "Purple dashed line: p = 0.05 for a single test.\nRed dashed line: FDR 5% threshold across all ",
                           "scores and outcomes of the panel (Benjamini–Hochberg). Labelled points pass FDR.")) +
     coord_cartesian(clip = "off") +
     theme_figure() +
@@ -131,18 +134,18 @@ heatmap_plot <- function(d, hyp, set_name) {
   d[, predictor := factor(label_score(predictor), levels = rev(label_score(scores)))]
   d[, mark := stars(p_value, p_fdr)]
 
-  if (hyp == "H1") {
+  info <- hypothesis_info[hypothesis == hyp]
+  title <- sprintf("%s, %s", set_name, info$title)
+  if (info$signed) {
     d[, value := estimate]
     limit <- max(abs(d$value), na.rm = TRUE)
     fill_scale <- scale_fill_gradient2(low = "#1c5cab", mid = "#f0efec", high = "#c22f2f", midpoint = 0,
-                                       limits = c(-limit, limit), name = "Standardised\nestimate")
-    title <- sprintf("%s, H1: association of each score with each outcome", set_name)
+                                       limits = c(-limit, limit), name = info$estimate_label)
     dark <- abs(d$value) > 0.55 * limit
   } else {
     d[, value := -log10(p_value)]
     fill_scale <- scale_fill_gradientn(colours = c("#f0efec", "#b7d3f6", "#6da7ec", "#2a78d6", "#1c5cab", "#0d366b"),
                                        limits = c(0, max(d$value)), name = expression(-log[10](italic(p))))
-    title <- sprintf("%s, H2: change of the association with age (GPS × age)", set_name)
     dark <- d$value > 0.55 * max(d$value)
   }
   d[, mark_colour := fifelse(dark, "white", ink)]
@@ -173,11 +176,12 @@ heatmap_plot <- function(d, hyp, set_name) {
 for (set_name in setdiff(unique(results$score_group), grep("_combined$", unique(results$score_group), value = TRUE))) {
   d <- results[score_group == set_name]
   n_scores <- uniqueN(d$predictor)
-  save_png(phewas_plot(d, set_name), sprintf("%s_phewas.png", set_name), width = 10, height = 8)
-  if (any(d$hypothesis == "H1"))
-    save_png(heatmap_plot(d, "H1", set_name), sprintf("%s_heatmap_H1.png", set_name),
-             width = 9, height = 2 + 0.22 * n_scores)
-  if (any(d$hypothesis == "H2"))
-    save_png(heatmap_plot(d, "H2", set_name), sprintf("%s_heatmap_H2.png", set_name),
-             width = 7.2, height = 2 + 0.22 * n_scores)
+  hyps <- hypothesis_info[hypothesis %in% unique(d$hypothesis), hypothesis]
+  save_png(phewas_plot(d, set_name), sprintf("%s_phewas.png", set_name),
+           width = 10, height = 1.5 + 3.6 * length(hyps))
+  for (h in hyps) {
+    n_outcomes <- uniqueN(d[hypothesis == h, outcome])
+    save_png(heatmap_plot(d, h, set_name), sprintf("%s_heatmap_%s.png", set_name, h),
+             width = 3.2 + 0.36 * n_outcomes, height = 2 + 0.22 * n_scores)
+  }
 }

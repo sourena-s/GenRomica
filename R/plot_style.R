@@ -23,7 +23,7 @@ outcome_labels <- c(
 )
 ink <- "#0b0b0b"; ink_muted <- "#52514e"; grid_col <- "#e4e3df"
 # threshold lines use palette slots 7-8, which no domain uses
-col_fdr <- "#6250d6"; col_nominal <- "#e34948"
+col_nominal <- "#6250d6"; col_fdr <- "#e34948"   # single test: purple; FDR (all tests): red
 
 label_outcome <- function(x) ifelse(x %in% names(outcome_labels), outcome_labels[x], x)
 
@@ -52,3 +52,16 @@ save_png <- function(plot, name, width, height, dir = fig_dir) {
   message("Wrote ", file.path(dir, name))
 }
 
+
+
+# Hypotheses, in figure order. `signed`: the test has one coefficient with a
+# sign (drawn as up/down triangles and as a diverging heatmap of the estimate).
+hypothesis_info <- data.table(
+  hypothesis = c("H1", "H2_lin_interact", "H2_quad_interact", "H2_lin_and_quad_interact"),
+  title = c("H1: association, one score at a time",
+            "H2_lin_interact: linear change with age (GPS \u00d7 age)",
+            "H2_quad_interact: curved change with age (GPS \u00d7 age\u00b2, beyond linear)",
+            "H2_lin_and_quad_interact: any change with age (GPS \u00d7 age and GPS \u00d7 age\u00b2)"),
+  signed = c(TRUE, TRUE, TRUE, FALSE),
+  estimate_label = c("Standardised\nestimate", "GPS \u00d7 age\nestimate", "GPS \u00d7 age\u00b2\nestimate", NA)
+)

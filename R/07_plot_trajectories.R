@@ -50,11 +50,12 @@ for (k in seq_len(nrow(pairs))) {
   if (is.null(fit)) { message("Skipped ", score_k, " x ", outcome_k, ": too little data"); next }
 
   r <- long_results[predictor == score_k & outcome == outcome_k]
-  p_text <- paste(vapply(c("H1", "H2"), function(h) {
+  p_lines <- vapply(hypothesis_info$hypothesis, function(h) {
     row <- r[hypothesis == h]
     if (!nrow(row)) return(sprintf("%s: not in results.csv", h))
     sprintf("%s: p = %s (FDR p = %s)", h, format_p(row$p_value[1]), format_p(row$p_fdr[1]))
-  }, ""), collapse = "     ")
+  }, "")
+  p_text <- paste(paste(p_lines[1:2], collapse = "     "), paste(p_lines[3:4], collapse = "     "), sep = "\n")
 
   save_png(plot_trajectory(fit$fit, score_k, outcome_k, p_text),
            sprintf("trajectory_%s_%s.png", label_score(score_k), outcome_k), width = 8.5, height = 6, dir = fig_dir)

@@ -37,9 +37,9 @@ long <- rbindlist(lapply(names(waves), function(w) {
 long <- long[runif(.N) > 0.2]                           # 20% missing visits
 
 fit <- fit_lmm_one_score(long, "C3", return_model = TRUE)
-p_text <- sprintf("H1: p = %s     H2: p = %s   (simulated data)",
-                  formatC(fit$main[hypothesis == "H1", p_value], format = "e", digits = 1),
-                  formatC(fit$main[hypothesis == "H2", p_value], format = "e", digits = 1))
+p_lines <- fit$main[, sprintf("%s: p = %s", hypothesis, formatC(p_value, format = "e", digits = 1))]
+p_text <- paste(paste(p_lines[1:2], collapse = "     "),
+                paste(c(p_lines[3:4], "(simulated data)"), collapse = "     "), sep = "\n")
 dir.create("toy/data/viz/figures", recursive = TRUE, showWarnings = FALSE)
 save_png(plot_trajectory(fit$fit, "C3", "att", p_text), "trajectory_demo_GPS3_att.png",
          width = 8.5, height = 6, dir = "toy/data/viz/figures")
